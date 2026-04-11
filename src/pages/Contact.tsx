@@ -25,13 +25,20 @@ const Contact = () => {
           </div>
 
           <div className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/90">
-            <div className="h-72 w-full bg-slate-900">
-              <iframe
-                title="Event Book map"
-                className="h-full w-full border-0"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2689.909875176904!2d-122.34409068442055!3d47.60962457918469!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x54901545d9fcc9f7%3A0x6fd3fa06e8f31bf9!2sSeattle%2C%20WA%2098101!5e0!3m2!1sen!2sus!4v1700000000000!5m2!1sen!2sus"
-                loading="lazy"
-              />
+            <div className="flex h-72 w-full flex-col items-center justify-center gap-4 bg-slate-900 p-8 text-center text-slate-300">
+              <span className="text-4xl">📍</span>
+              <div>
+                <p className="text-lg font-semibold text-white">Seattle, WA 98101</p>
+                <p className="mt-2 text-sm text-slate-400">View our location on Google Maps without loading the embedded map script.</p>
+              </div>
+              <a
+                href="https://www.google.com/maps/place/Seattle,+WA+98101"
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full bg-indigo-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-400"
+              >
+                Open map
+              </a>
             </div>
           </div>
         </div>
