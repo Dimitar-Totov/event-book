@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet } from 'react-router-dom';
+import logo from './public/logo.png';
 
 const footerLinks = {
   product: [
@@ -81,8 +82,12 @@ function App() {
       <header className="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4 sm:px-8">
           <Link to="/" className="flex items-center gap-3 text-current no-underline">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-500 text-base font-bold text-white shadow-soft">
-              EB
+            <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl shadow-soft">
+              <img
+                src={logo}
+                alt="EventBook Logo"
+                className="h-full w-full object-contain"
+              />
             </div>
             <div>
               <p className="text-sm uppercase tracking-[0.3em] text-indigo-300">Event Book</p>
@@ -109,8 +114,12 @@ function App() {
             {/* Brand column */}
             <div className="flex flex-col gap-5">
               <Link to="/" className="flex items-center gap-3 text-current no-underline">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-500 text-base font-bold text-white shadow-soft">
-                  EB
+                <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl shadow-soft">
+                  <img
+                    src={logo}
+                    alt="EventBook Logo"
+                    className="h-full w-full object-contain"
+                  />
                 </div>
                 <div>
                   <p className="text-sm uppercase tracking-[0.3em] text-indigo-300">Event Book</p>
@@ -175,32 +184,6 @@ function App() {
                   </li>
                 ))}
               </ul>
-            </div>
-          </div>
-
-          {/* Newsletter strip */}
-          <div className="mt-12 rounded-2xl border border-slate-800 bg-slate-900/60 px-6 py-6 sm:px-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-slate-200">Stay in the loop</p>
-                <p className="text-xs text-slate-500">Get notified about new events and platform updates.</p>
-              </div>
-              <form
-                onSubmit={(e) => e.preventDefault()}
-                className="flex w-full max-w-sm gap-2"
-              >
-                <input
-                  type="email"
-                  placeholder="you@example.com"
-                  className="flex-1 rounded-xl border border-slate-700 bg-slate-800 px-4 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-                />
-                <button
-                  type="submit"
-                  className="rounded-xl bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-400 active:scale-95"
-                >
-                  Subscribe
-                </button>
-              </form>
             </div>
           </div>
         </div>
