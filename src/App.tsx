@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet } from 'react-router-dom';
+
 const logo = '/logo.png';
 
 const footerLinks = {
@@ -70,7 +71,7 @@ const NavLinkItem = ({ label, path }: { label: string; path: string }) => (
     to={path}
     end={path === '/'}
     className={({ isActive }) =>
-      `text-slate-200 transition hover:text-white ${isActive ? 'font-semibold text-white' : 'opacity-80'}`
+      `text-sm font-medium transition-colors duration-200 hover:text-violet-600 ${isActive ? 'text-violet-600' : 'text-gray-500'}`
     }
   >
     {label}
@@ -79,23 +80,28 @@ const NavLinkItem = ({ label, path }: { label: string; path: string }) => (
 
 function App() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur-xl">
+    <div className="min-h-screen bg-slate-50 text-gray-900">
+
+      {/* Ambient background blobs */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-40 left-1/4 h-[600px] w-[600px] rounded-full bg-violet-200/40 blur-[120px]" />
+        <div className="absolute right-1/4 top-1/3 h-[500px] w-[500px] rounded-full bg-sky-200/40 blur-[120px]" />
+        <div className="absolute bottom-0 left-1/3 h-[400px] w-[400px] rounded-full bg-pink-200/30 blur-[100px]" />
+      </div>
+
+      {/* Header */}
+      <header className="sticky top-0 z-20 border-b border-violet-100/60 bg-white/70 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4 sm:px-8">
           <Link to="/" className="flex items-center gap-3 text-current no-underline">
-            <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl shadow-soft">
-              <img
-                src={logo}
-                alt="EventBook Logo"
-                className="h-full w-full object-contain"
-              />
+            <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl shadow-soft ring-1 ring-violet-200/60">
+              <img src={logo} alt="EventBook Logo" className="h-full w-full object-contain" />
             </div>
             <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-indigo-300">Event Book</p>
-              <p className="text-sm text-slate-400">Plan memorable gatherings</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-violet-500">Event Book</p>
+              <p className="text-xs text-gray-400">Plan memorable gatherings</p>
             </div>
           </Link>
-          <nav className="flex items-center gap-6 text-sm sm:gap-8">
+          <nav className="flex items-center gap-6 sm:gap-8">
             {navItems.map((item) => (
               <NavLinkItem key={item.path} {...item} />
             ))}
@@ -107,37 +113,32 @@ function App() {
         <Outlet />
       </main>
 
-      <footer className="border-t border-slate-800 bg-slate-950 text-slate-400">
-        {/* Main footer content */}
+      {/* Footer */}
+      <footer className="border-t border-violet-100/60 bg-white/60 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-6 py-14 sm:px-8">
           <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
 
-            {/* Brand column */}
+            {/* Brand */}
             <div className="flex flex-col gap-5">
               <Link to="/" className="flex items-center gap-3 text-current no-underline">
-                <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl shadow-soft">
-                  <img
-                    src={logo}
-                    alt="EventBook Logo"
-                    className="h-full w-full object-contain"
-                  />
+                <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl ring-1 ring-violet-200/60">
+                  <img src={logo} alt="EventBook Logo" className="h-full w-full object-contain" />
                 </div>
                 <div>
-                  <p className="text-sm uppercase tracking-[0.3em] text-indigo-300">Event Book</p>
-                  <p className="text-xs text-slate-500">Plan memorable gatherings</p>
+                  <p className="text-sm font-semibold uppercase tracking-[0.3em] text-violet-500">Event Book</p>
+                  <p className="text-xs text-gray-400">Plan memorable gatherings</p>
                 </div>
               </Link>
-              <p className="text-sm leading-relaxed text-slate-500">
+              <p className="text-sm leading-relaxed text-gray-500">
                 The all-in-one platform for creating, managing, and sharing events that bring people together.
               </p>
-              {/* Social icons */}
               <div className="flex items-center gap-3">
                 {socialLinks.map(({ label, href, icon }) => (
                   <a
                     key={label}
                     href={href}
                     aria-label={label}
-                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-800 text-slate-500 transition hover:border-indigo-500 hover:text-indigo-400"
+                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-violet-100 text-gray-400 transition hover:border-violet-300 hover:text-violet-500"
                   >
                     {icon}
                   </a>
@@ -145,43 +146,37 @@ function App() {
               </div>
             </div>
 
-            {/* Product links */}
+            {/* Product */}
             <div>
-              <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-slate-300">Product</h3>
+              <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-gray-400">Product</h3>
               <ul className="flex flex-col gap-3 text-sm">
                 {footerLinks.product.map(({ label, path }) => (
                   <li key={label}>
-                    <Link to={path} className="transition hover:text-white">
-                      {label}
-                    </Link>
+                    <Link to={path} className="text-gray-500 transition hover:text-violet-600">{label}</Link>
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* Support links */}
+            {/* Support */}
             <div>
-              <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-slate-300">Support</h3>
+              <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-gray-400">Support</h3>
               <ul className="flex flex-col gap-3 text-sm">
                 {footerLinks.support.map(({ label, path }) => (
                   <li key={label}>
-                    <a href={path} className="transition hover:text-white">
-                      {label}
-                    </a>
+                    <a href={path} className="text-gray-500 transition hover:text-violet-600">{label}</a>
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* Legal links */}
+            {/* Legal */}
             <div>
-              <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-slate-300">Legal</h3>
+              <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-gray-400">Legal</h3>
               <ul className="flex flex-col gap-3 text-sm">
                 {footerLinks.legal.map(({ label, path }) => (
                   <li key={label}>
-                    <a href={path} className="transition hover:text-white">
-                      {label}
-                    </a>
+                    <a href={path} className="text-gray-500 transition hover:text-violet-600">{label}</a>
                   </li>
                 ))}
               </ul>
@@ -190,13 +185,11 @@ function App() {
         </div>
 
         {/* Bottom bar */}
-        <div className="border-t border-slate-800 px-6 py-5 sm:px-8">
-          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 text-xs text-slate-600 sm:flex-row">
+        <div className="border-t border-violet-100/60 px-6 py-5 sm:px-8">
+          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 text-xs text-gray-400 sm:flex-row">
             <p>© {new Date().getFullYear()} Event Book. All rights reserved.</p>
             <p className="flex items-center gap-1">
-              Built with
-              <span className="mx-1 text-red-500">♥</span>
-              for event planners everywhere.
+              Built with <span className="mx-1 gradient-iris-text font-semibold">love</span> for event planners everywhere.
             </p>
           </div>
         </div>

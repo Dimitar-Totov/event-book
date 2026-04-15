@@ -1,7 +1,20 @@
 @import "tailwindcss";
 
 @theme {
-  --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --shadow-soft: 0 10px 40px rgba(99, 102, 241, 0.10);
+  --shadow-glow: 0 0 40px rgba(167, 139, 250, 0.18);
+
+  --color-iris-50:  #f5f3ff;
+  --color-iris-100: #ede9fe;
+  --color-iris-200: #ddd6fe;
+  --color-iris-300: #c4b5fd;
+  --color-iris-400: #a78bfa;
+  --color-iris-500: #8b5cf6;
+  --color-iris-600: #7c3aed;
+
+  --color-sky-soft: #f0f9ff;
+  --color-teal-soft: #ccfbf1;
+  --color-pink-soft: #fdf2f8;
 }
 
 html {
@@ -9,5 +22,49 @@ html {
 }
 
 body {
-  @apply bg-slate-950 text-slate-100 antialiased;
+  @apply bg-slate-50 text-gray-900 antialiased;
+}
+
+/* Iridescent gradient utility */
+.gradient-iris {
+  background: linear-gradient(135deg, #a78bfa 0%, #7dd3fc 40%, #f472b6 80%, #a78bfa 100%);
+  background-size: 300% 300%;
+  animation: iris-shift 8s ease infinite;
+}
+
+.gradient-iris-subtle {
+  background: linear-gradient(135deg, #ede9fe 0%, #e0f2fe 40%, #fce7f3 80%, #ede9fe 100%);
+  background-size: 300% 300%;
+  animation: iris-shift 10s ease infinite;
+}
+
+.gradient-iris-text {
+  background: linear-gradient(135deg, #a78bfa, #7dd3fc, #f472b6);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: iris-shift 6s ease infinite;
+}
+
+@keyframes iris-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Glassmorphism card */
+.glass {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(167, 139, 250, 0.18);
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.10);
+}
+
+.glass-dark {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(167, 139, 250, 0.14);
 }
