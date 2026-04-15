@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet } from 'react-router-dom';
-import logo from './public/logo.png';
+const logo = '/logo.png';
 
 const footerLinks = {
   product: [
@@ -62,6 +62,7 @@ const navItems = [
   { label: 'Home', path: '/' },
   { label: 'About', path: '/about' },
   { label: 'Contact', path: '/contact' },
+  { label: 'Auth', path: '/auth' },
 ];
 
 const NavLinkItem = ({ label, path }: { label: string; path: string }) => (
