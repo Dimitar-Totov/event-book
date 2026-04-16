@@ -7,6 +7,7 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import Auth from './pages/Auth';
 import Event from './pages/Event';
+import Conversation from './pages/Conversation';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
@@ -20,7 +21,7 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
           <Route path="auth" element={<Auth />} />
           <Route path="events" element={<Event />} />
           <Route path="events/:category" element={<Event />} />
-          <Route path="events/:category/:eventId" element={<Event />} />
+          <Route path="events/:category/:eventId" element={<Conversation />} />
           <Route path="*" element={<Home />} />
         </Route>
       </Routes>

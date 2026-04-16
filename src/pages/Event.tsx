@@ -458,17 +458,26 @@ function CategoryPage({ slug }: { slug: string }) {
                 {/* Description */}
                 <p className="mt-3 text-sm leading-relaxed text-gray-500">{event.description}</p>
 
-                {/* Footer CTA */}
-                <div
-                  className={[
-                    'mt-6 flex items-center gap-1 text-sm font-semibold transition-colors duration-200',
+                {/* Footer CTAs */}
+                <div className="mt-6 flex items-center gap-4">
+                  <div className={[
+                    'flex items-center gap-1 text-sm font-semibold transition-colors duration-200',
                     cat.accent,
-                  ].join(' ')}
-                >
-                  <Link to="/auth" className="focus-visible:outline-none focus-visible:underline">
-                    Reserve a spot
+                  ].join(' ')}>
+                    <Link to="/auth" className="focus-visible:outline-none focus-visible:underline">
+                      Reserve a spot
+                    </Link>
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+                  </div>
+                  <Link
+                    to={`/events/${slug}/${event.id}`}
+                    className="flex items-center gap-1 text-sm font-medium text-gray-400 transition-colors duration-200 hover:text-gray-600 focus-visible:outline-none focus-visible:underline"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" className="h-3.5 w-3.5">
+                      <path fillRule="evenodd" d="M1 8.74c0 .983.713 1.825 1.69 1.943.764.092 1.534.162 2.31.208v2.36a.75.75 0 0 0 1.28.53l2.56-2.559c.24-.24.566-.375.905-.375H12a1.75 1.75 0 0 0 1.75-1.75V4.75A1.75 1.75 0 0 0 12 3H4A1.75 1.75 0 0 0 2.25 4.75v2.12c-.76.18-1.25.873-1.25 1.87ZM4 4.5h8a.25.25 0 0 1 .25.25v3.75A.25.25 0 0 1 12 8.75H9.745a2.25 2.25 0 0 0-1.59.659L6.5 11.06V9.5a.75.75 0 0 0-.75-.75H4a.25.25 0 0 1-.25-.25V4.75A.25.25 0 0 1 4 4.5Z" clipRule="evenodd" />
+                    </svg>
+                    Chat
                   </Link>
-                  <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
                 </div>
               </div>
             </article>
