@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
 
 const logo = '/logo.png';
@@ -61,17 +62,29 @@ const socialLinks = [
 
 const navItems = [
   { label: 'Home', path: '/' },
+  { label: 'Events', path: '/events' },
   { label: 'About', path: '/about' },
   { label: 'Contact', path: '/contact' },
   { label: 'Auth', path: '/auth' },
 ];
 
-const NavLinkItem = ({ label, path }: { label: string; path: string }) => (
+const NavLinkItem = ({
+  label,
+  path,
+  onClick,
+  className: extraClass = '',
+}: {
+  label: string;
+  path: string;
+  onClick?: () => void;
+  className?: string;
+}) => (
   <NavLink
     to={path}
     end={path === '/'}
+    onClick={onClick}
     className={({ isActive }) =>
-      `text-sm font-medium transition-colors duration-200 hover:text-violet-600 ${isActive ? 'text-violet-600' : 'text-gray-500'}`
+      `text-sm font-medium transition-colors duration-200 hover:text-violet-600 ${isActive ? 'text-violet-600' : 'text-gray-500'} ${extraClass}`
     }
   >
     {label}
@@ -79,6 +92,8 @@ const NavLinkItem = ({ label, path }: { label: string; path: string }) => (
 );
 
 function App() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-slate-50 text-gray-900">
 
@@ -92,7 +107,7 @@ function App() {
       {/* Header */}
       <header className="sticky top-0 z-20 border-b border-violet-100/60 bg-white/70 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4 sm:px-8">
-          <Link to="/" className="flex items-center gap-3 text-current no-underline">
+          <Link to="/" className="flex items-center gap-3 text-current no-underline" onClick={() => setMenuOpen(false)}>
             <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl shadow-soft ring-1 ring-violet-200/60">
               <img src={logo} alt="EventBook Logo" className="h-full w-full object-contain" />
             </div>
@@ -101,12 +116,54 @@ function App() {
               <p className="text-xs text-gray-400">Plan memorable gatherings</p>
             </div>
           </Link>
-          <nav className="flex items-center gap-6 sm:gap-8">
+
+          {/* Desktop nav */}
+          <nav className="hidden items-center gap-6 sm:flex sm:gap-8">
             {navItems.map((item) => (
               <NavLinkItem key={item.path} {...item} />
             ))}
           </nav>
+
+          {/* Hamburger button — mobile only */}
+          <button
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-violet-100 text-gray-500 transition hover:border-violet-300 hover:text-violet-600 sm:hidden"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((prev) => !prev)}
+          >
+            {menuOpen ? (
+              /* X icon */
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            ) : (
+              /* Hamburger icon */
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            )}
+          </button>
         </div>
+
+        {/* Mobile drawer */}
+        {menuOpen && (
+          <nav className="border-t border-violet-100/60 bg-white/90 backdrop-blur-xl sm:hidden">
+            <ul className="flex flex-col px-6 py-2">
+              {navItems.map((item) => (
+                <li key={item.path} className="border-b border-violet-50 last:border-0">
+                  <NavLinkItem
+                    {...item}
+                    onClick={() => setMenuOpen(false)}
+                    className="block py-3"
+                  />
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
       </header>
 
       <main>
