@@ -1,223 +1,7 @@
+import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-
-// ─── Data ────────────────────────────────────────────────────────────────────
-
-type Category = {
-  slug: string;
-  label: string;
-  emoji: string;
-  tagline: string;
-  gradientCard: string;
-  gradientOverlay: string;
-  iconRing: string;
-  accent: string;
-  pill: string;
-  glow: string;
-};
-
-const categories: Category[] = [
-  {
-    slug: 'music',
-    label: 'Music Concerts',
-    emoji: '🎵',
-    tagline: 'Live performances, festivals & intimate gigs',
-    gradientCard: 'from-violet-50 via-purple-50 to-pink-50',
-    gradientOverlay: 'from-violet-400/20 via-purple-300/10 to-pink-400/20',
-    iconRing: 'ring-violet-200 bg-violet-100',
-    accent: 'text-violet-600',
-    pill: 'bg-violet-100 text-violet-600 ring-violet-200',
-    glow: 'hover:shadow-violet-200/70',
-  },
-  {
-    slug: 'hiking',
-    label: 'Mountain Hiking',
-    emoji: '⛰️',
-    tagline: 'Guided treks, day hikes & alpine expeditions',
-    gradientCard: 'from-teal-50 via-emerald-50 to-sky-50',
-    gradientOverlay: 'from-teal-400/20 via-emerald-300/10 to-sky-400/20',
-    iconRing: 'ring-teal-200 bg-teal-100',
-    accent: 'text-teal-600',
-    pill: 'bg-teal-100 text-teal-600 ring-teal-200',
-    glow: 'hover:shadow-teal-200/70',
-  },
-  {
-    slug: 'beach',
-    label: 'Beach Getaway',
-    emoji: '🏖️',
-    tagline: 'Coastal retreats, water sports & sunset events',
-    gradientCard: 'from-sky-50 via-cyan-50 to-blue-50',
-    gradientOverlay: 'from-sky-400/20 via-cyan-300/10 to-blue-400/20',
-    iconRing: 'ring-sky-200 bg-sky-100',
-    accent: 'text-sky-600',
-    pill: 'bg-sky-100 text-sky-600 ring-sky-200',
-    glow: 'hover:shadow-sky-200/70',
-  },
-  {
-    slug: 'food',
-    label: 'Food Festival',
-    emoji: '🍽️',
-    tagline: 'Culinary tastings, chef pop-ups & street food',
-    gradientCard: 'from-amber-50 via-orange-50 to-yellow-50',
-    gradientOverlay: 'from-amber-400/20 via-orange-300/10 to-yellow-400/20',
-    iconRing: 'ring-amber-200 bg-amber-100',
-    accent: 'text-amber-600',
-    pill: 'bg-amber-100 text-amber-600 ring-amber-200',
-    glow: 'hover:shadow-amber-200/70',
-  },
-  {
-    slug: 'art',
-    label: 'Art Exhibition',
-    emoji: '🎨',
-    tagline: 'Galleries, installations & live art performances',
-    gradientCard: 'from-pink-50 via-rose-50 to-fuchsia-50',
-    gradientOverlay: 'from-pink-400/20 via-rose-300/10 to-fuchsia-400/20',
-    iconRing: 'ring-pink-200 bg-pink-100',
-    accent: 'text-pink-600',
-    pill: 'bg-pink-100 text-pink-600 ring-pink-200',
-    glow: 'hover:shadow-pink-200/70',
-  },
-];
-
-type EventItem = {
-  id: string;
-  name: string;
-  type: string;
-  date: string;
-  description: string;
-};
-
-const eventsByCategory: Record<string, EventItem[]> = {
-  music: [
-    {
-      id: '1',
-      name: 'Jazz Night',
-      type: 'Jazz',
-      date: 'April 18, 2026',
-      description:
-        'An intimate evening of smooth jazz featuring top local and international artists at a cozy downtown venue.',
-    },
-    {
-      id: '2',
-      name: 'Rock Festival',
-      type: 'Rock',
-      date: 'May 10–12, 2026',
-      description:
-        'Three days of electrifying rock performances across multiple stages in the heart of the city.',
-    },
-    {
-      id: '3',
-      name: 'Classical Orchestra',
-      type: 'Classical',
-      date: 'April 30, 2026',
-      description:
-        'A grand symphony performance by the National Orchestra featuring works by Beethoven and Brahms.',
-    },
-  ],
-  hiking: [
-    {
-      id: '1',
-      name: 'Rila Mountain',
-      type: 'Hiking',
-      date: 'April 20–22, 2026',
-      description:
-        "A guided 3-day hike through Bulgaria's highest mountain range, ending at the iconic Seven Rila Lakes.",
-    },
-    {
-      id: '2',
-      name: 'Pirin Mountain',
-      type: 'Trekking',
-      date: 'May 5–7, 2026',
-      description:
-        'An immersive trekking experience through Pirin National Park with breathtaking alpine scenery.',
-    },
-    {
-      id: '3',
-      name: 'Vitosha Mountain',
-      type: 'Day Hike',
-      date: 'April 25, 2026',
-      description:
-        "A refreshing day hike on Vitosha's trails — Sofia's natural park — with sweeping panoramic city views.",
-    },
-  ],
-  beach: [
-    {
-      id: '1',
-      name: 'Sunny Beach Weekend',
-      type: 'Coastal Retreat',
-      date: 'May 15–17, 2026',
-      description:
-        'A relaxing coastal escape with beach volleyball, paddleboarding, and evening bonfires by the shore.',
-    },
-    {
-      id: '2',
-      name: 'Sunset Sailing',
-      type: 'Water Sport',
-      date: 'April 26, 2026',
-      description:
-        'Sail along the coast at golden hour aboard a private yacht with a gourmet dinner included.',
-    },
-    {
-      id: '3',
-      name: 'Surf & Yoga Retreat',
-      type: 'Wellness',
-      date: 'June 1–3, 2026',
-      description:
-        'Combine morning yoga sessions on the shore with afternoon surf lessons for all skill levels.',
-    },
-  ],
-  food: [
-    {
-      id: '1',
-      name: 'Street Food Carnival',
-      type: 'Street Food',
-      date: 'April 19, 2026',
-      description:
-        'Explore dozens of street food stalls featuring cuisines from around the world in one vibrant space.',
-    },
-    {
-      id: '2',
-      name: 'Farm-to-Table Dinner',
-      type: 'Fine Dining',
-      date: 'May 3, 2026',
-      description:
-        'An exclusive 5-course dinner by renowned chefs using locally sourced, seasonal ingredients.',
-    },
-    {
-      id: '3',
-      name: 'Wine & Cheese Festival',
-      type: 'Tasting',
-      date: 'May 23–24, 2026',
-      description:
-        'Discover premium wine and artisan cheese pairings with guided tastings from expert sommeliers.',
-    },
-  ],
-  art: [
-    {
-      id: '1',
-      name: 'Modern Art Showcase',
-      type: 'Gallery',
-      date: 'April 22, 2026',
-      description:
-        'A curated collection of contemporary works from emerging and established artists across five galleries.',
-    },
-    {
-      id: '2',
-      name: 'Live Mural Painting',
-      type: 'Live Art',
-      date: 'May 8, 2026',
-      description:
-        'Watch acclaimed muralists transform a blank canvas into a masterpiece over a single 8-hour session.',
-    },
-    {
-      id: '3',
-      name: 'Sculpture Garden Walk',
-      type: 'Installation',
-      date: 'May 17–18, 2026',
-      description:
-        'Stroll through an outdoor garden featuring large-scale sculptures and immersive art installations.',
-    },
-  ],
-};
+import { categories } from '../services/categories';
+import { type EventItem, fetchEventsByCategory } from '../services/events';
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
@@ -303,13 +87,12 @@ function CategoriesPage() {
               ].join(' ')}
             />
 
-            {/* Decorative circle */}
+            {/* Decorative circles */}
             <div className="absolute -right-8 -top-8 h-36 w-36 rounded-full bg-white/20 transition-transform duration-500 group-hover:scale-125" />
             <div className="absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-white/15 transition-transform duration-500 group-hover:scale-110" />
 
             {/* Content */}
             <div className="relative p-8">
-              {/* Icon */}
               <span
                 className={[
                   'inline-flex h-16 w-16 items-center justify-center rounded-2xl text-3xl',
@@ -321,11 +104,9 @@ function CategoriesPage() {
                 {cat.emoji}
               </span>
 
-              {/* Text */}
               <h2 className="mt-5 text-xl font-semibold text-gray-900">{cat.label}</h2>
               <p className="mt-2 text-sm leading-relaxed text-gray-500">{cat.tagline}</p>
 
-              {/* CTA row */}
               <div className={`mt-6 flex items-center gap-1.5 text-sm font-semibold transition-colors duration-200 ${cat.accent}`}>
                 Browse events
                 <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
@@ -342,7 +123,36 @@ function CategoriesPage() {
 
 function CategoryPage({ slug }: { slug: string }) {
   const cat = categories.find((c) => c.slug === slug);
-  const events = eventsByCategory[slug] ?? [];
+
+  const [events, setEvents] = useState<EventItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!cat) {
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    fetchEventsByCategory(cat.label)
+      .then((data) => {
+        if (!cancelled) {
+          setEvents(data);
+          setLoading(false);
+        }
+      })
+      .catch((err: Error) => {
+        if (!cancelled) {
+          setError(err.message);
+          setLoading(false);
+        }
+      });
+
+    return () => { cancelled = true; };
+  }, [slug]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!cat) {
     return (
@@ -413,77 +223,95 @@ function CategoryPage({ slug }: { slug: string }) {
       {/* Events heading */}
       <div className="mt-12 flex items-center justify-between">
         <h2 className="text-xl font-semibold text-gray-900">Upcoming events</h2>
-        <span className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-500">
-          {events.length} events
-        </span>
+        {!loading && !error && (
+          <span className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-500">
+            {events.length} events
+          </span>
+        )}
       </div>
 
+      {/* Loading spinner */}
+      {loading && (
+        <div className="mt-10 flex justify-center py-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-violet-100 border-t-violet-500" />
+        </div>
+      )}
+
+      {/* Error state */}
+      {!loading && error && (
+        <div className="mt-5 rounded-2xl border border-red-100 bg-red-50 px-6 py-5 text-sm text-red-600">
+          Failed to load events: {error}
+        </div>
+      )}
+
       {/* Event cards */}
-      <ul className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {events.map((event) => (
-          <li key={event.id}>
-            <article
-              className={[
-                'group relative h-full overflow-hidden rounded-3xl border border-white/60 bg-white/70',
-                'shadow-md backdrop-blur-sm transition-all duration-300 ease-out',
-                'hover:-translate-y-1 hover:scale-[1.015] hover:shadow-xl',
-                cat.glow,
-              ].join(' ')}
-            >
-              {/* Top accent stripe */}
-              <div className={`h-1.5 w-full bg-gradient-to-r ${cat.gradientOverlay} opacity-80`} />
+      {!loading && !error && (
+        <ul className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {events.map((event) => (
+            <li key={event.id}>
+              <article
+                className={[
+                  'group relative h-full overflow-hidden rounded-3xl border border-white/60 bg-white/70',
+                  'shadow-md backdrop-blur-sm transition-all duration-300 ease-out',
+                  'hover:-translate-y-1 hover:scale-[1.015] hover:shadow-xl',
+                  cat.glow,
+                ].join(' ')}
+              >
+                {/* Top accent stripe */}
+                <div className={`h-1.5 w-full bg-gradient-to-r ${cat.gradientOverlay} opacity-80`} />
 
-              <div className="p-7">
-                {/* Type pill */}
-                <span
-                  className={[
-                    'inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1',
-                    cat.pill,
-                  ].join(' ')}
-                >
-                  {event.type}
-                </span>
-
-                {/* Event name */}
-                <h3 className="mt-3 text-lg font-semibold leading-snug text-gray-900">
-                  {event.name}
-                </h3>
-
-                {/* Date */}
-                <div className="mt-3 flex items-center gap-2 text-sm text-gray-500">
-                  <CalendarIcon className={`h-4 w-4 shrink-0 ${cat.accent}`} />
-                  <time>{event.date}</time>
-                </div>
-
-                {/* Description */}
-                <p className="mt-3 text-sm leading-relaxed text-gray-500">{event.description}</p>
-
-                {/* Footer CTAs */}
-                <div className="mt-6 flex items-center gap-4">
-                  <div className={[
-                    'flex items-center gap-1 text-sm font-semibold transition-colors duration-200',
-                    cat.accent,
-                  ].join(' ')}>
-                    <Link to="/auth" className="focus-visible:outline-none focus-visible:underline">
-                      Reserve a spot
-                    </Link>
-                    <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-                  </div>
-                  <Link
-                    to={`/events/${slug}/${event.id}`}
-                    className="flex items-center gap-1 text-sm font-medium text-gray-400 transition-colors duration-200 hover:text-gray-600 focus-visible:outline-none focus-visible:underline"
+                <div className="p-7">
+                  {/* Type pill */}
+                  <span
+                    className={[
+                      'inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1',
+                      cat.pill,
+                    ].join(' ')}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" className="h-3.5 w-3.5">
-                      <path fillRule="evenodd" d="M1 8.74c0 .983.713 1.825 1.69 1.943.764.092 1.534.162 2.31.208v2.36a.75.75 0 0 0 1.28.53l2.56-2.559c.24-.24.566-.375.905-.375H12a1.75 1.75 0 0 0 1.75-1.75V4.75A1.75 1.75 0 0 0 12 3H4A1.75 1.75 0 0 0 2.25 4.75v2.12c-.76.18-1.25.873-1.25 1.87ZM4 4.5h8a.25.25 0 0 1 .25.25v3.75A.25.25 0 0 1 12 8.75H9.745a2.25 2.25 0 0 0-1.59.659L6.5 11.06V9.5a.75.75 0 0 0-.75-.75H4a.25.25 0 0 1-.25-.25V4.75A.25.25 0 0 1 4 4.5Z" clipRule="evenodd" />
-                    </svg>
-                    Chat
-                  </Link>
+                    {event.type}
+                  </span>
+
+                  {/* Event name */}
+                  <h3 className="mt-3 text-lg font-semibold leading-snug text-gray-900">
+                    {event.name}
+                  </h3>
+
+                  {/* Date */}
+                  <div className="mt-3 flex items-center gap-2 text-sm text-gray-500">
+                    <CalendarIcon className={`h-4 w-4 shrink-0 ${cat.accent}`} />
+                    <time>{event.date}</time>
+                  </div>
+
+                  {/* Description */}
+                  <p className="mt-3 text-sm leading-relaxed text-gray-500">{event.description}</p>
+
+                  {/* Footer CTAs */}
+                  <div className="mt-6 flex items-center gap-4">
+                    <div className={[
+                      'flex items-center gap-1 text-sm font-semibold transition-colors duration-200',
+                      cat.accent,
+                    ].join(' ')}>
+                      <Link to="/auth" className="focus-visible:outline-none focus-visible:underline">
+                        Reserve a spot
+                      </Link>
+                      <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+                    </div>
+                    <Link
+                      to={`/events/${slug}/${event.id}`}
+                      className="flex items-center gap-1 text-sm font-medium text-gray-400 transition-colors duration-200 hover:text-gray-600 focus-visible:outline-none focus-visible:underline"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" className="h-3.5 w-3.5">
+                        <path fillRule="evenodd" d="M1 8.74c0 .983.713 1.825 1.69 1.943.764.092 1.534.162 2.31.208v2.36a.75.75 0 0 0 1.28.53l2.56-2.559c.24-.24.566-.375.905-.375H12a1.75 1.75 0 0 0 1.75-1.75V4.75A1.75 1.75 0 0 0 12 3H4A1.75 1.75 0 0 0 2.25 4.75v2.12c-.76.18-1.25.873-1.25 1.87ZM4 4.5h8a.25.25 0 0 1 .25.25v3.75A.25.25 0 0 1 12 8.75H9.745a2.25 2.25 0 0 0-1.59.659L6.5 11.06V9.5a.75.75 0 0 0-.75-.75H4a.25.25 0 0 1-.25-.25V4.75A.25.25 0 0 1 4 4.5Z" clipRule="evenodd" />
+                      </svg>
+                      Chat
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            </article>
-          </li>
-        ))}
-      </ul>
+              </article>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

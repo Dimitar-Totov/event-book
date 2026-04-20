@@ -1,109 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { categories } from '../services/categories';
+import { type EventItem, fetchEventById } from '../services/events';
 
-// ─── Shared data (mirrors Event.tsx) ─────────────────────────────────────────
-
-type Category = {
-  slug: string;
-  label: string;
-  emoji: string;
-  accent: string;
-  pill: string;
-  gradientCard: string;
-  iconRing: string;
-  glow: string;
-};
-
-const categories: Category[] = [
-  {
-    slug: 'music',
-    label: 'Music Concerts',
-    emoji: '🎵',
-    accent: 'text-violet-600',
-    pill: 'bg-violet-100 text-violet-600 ring-violet-200',
-    gradientCard: 'from-violet-50 via-purple-50 to-pink-50',
-    iconRing: 'ring-violet-200 bg-violet-100',
-    glow: 'hover:shadow-violet-200/70',
-  },
-  {
-    slug: 'hiking',
-    label: 'Mountain Hiking',
-    emoji: '⛰️',
-    accent: 'text-teal-600',
-    pill: 'bg-teal-100 text-teal-600 ring-teal-200',
-    gradientCard: 'from-teal-50 via-emerald-50 to-sky-50',
-    iconRing: 'ring-teal-200 bg-teal-100',
-    glow: 'hover:shadow-teal-200/70',
-  },
-  {
-    slug: 'beach',
-    label: 'Beach Getaway',
-    emoji: '🏖️',
-    accent: 'text-sky-600',
-    pill: 'bg-sky-100 text-sky-600 ring-sky-200',
-    gradientCard: 'from-sky-50 via-cyan-50 to-blue-50',
-    iconRing: 'ring-sky-200 bg-sky-100',
-    glow: 'hover:shadow-sky-200/70',
-  },
-  {
-    slug: 'food',
-    label: 'Food Festival',
-    emoji: '🍽️',
-    accent: 'text-amber-600',
-    pill: 'bg-amber-100 text-amber-600 ring-amber-200',
-    gradientCard: 'from-amber-50 via-orange-50 to-yellow-50',
-    iconRing: 'ring-amber-200 bg-amber-100',
-    glow: 'hover:shadow-amber-200/70',
-  },
-  {
-    slug: 'art',
-    label: 'Art Exhibition',
-    emoji: '🎨',
-    accent: 'text-pink-600',
-    pill: 'bg-pink-100 text-pink-600 ring-pink-200',
-    gradientCard: 'from-pink-50 via-rose-50 to-fuchsia-50',
-    iconRing: 'ring-pink-200 bg-pink-100',
-    glow: 'hover:shadow-pink-200/70',
-  },
-];
-
-type EventItem = {
-  id: string;
-  name: string;
-  type: string;
-  date: string;
-  description: string;
-};
-
-const eventsByCategory: Record<string, EventItem[]> = {
-  music: [
-    { id: '1', name: 'Jazz Night', type: 'Jazz', date: 'April 18, 2026', description: 'An intimate evening of smooth jazz featuring top local and international artists at a cozy downtown venue.' },
-    { id: '2', name: 'Rock Festival', type: 'Rock', date: 'May 10–12, 2026', description: 'Three days of electrifying rock performances across multiple stages in the heart of the city.' },
-    { id: '3', name: 'Classical Orchestra', type: 'Classical', date: 'April 30, 2026', description: 'A grand symphony performance by the National Orchestra featuring works by Beethoven and Brahms.' },
-  ],
-  hiking: [
-    { id: '1', name: 'Rila Mountain', type: 'Hiking', date: 'April 20–22, 2026', description: "A guided 3-day hike through Bulgaria's highest mountain range, ending at the iconic Seven Rila Lakes." },
-    { id: '2', name: 'Pirin Mountain', type: 'Trekking', date: 'May 5–7, 2026', description: 'An immersive trekking experience through Pirin National Park with breathtaking alpine scenery.' },
-    { id: '3', name: 'Vitosha Mountain', type: 'Day Hike', date: 'April 25, 2026', description: "A refreshing day hike on Vitosha's trails — Sofia's natural park — with sweeping panoramic city views." },
-  ],
-  beach: [
-    { id: '1', name: 'Sunny Beach Weekend', type: 'Coastal Retreat', date: 'May 15–17, 2026', description: 'A relaxing coastal escape with beach volleyball, paddleboarding, and evening bonfires by the shore.' },
-    { id: '2', name: 'Sunset Sailing', type: 'Water Sport', date: 'April 26, 2026', description: 'Sail along the coast at golden hour aboard a private yacht with a gourmet dinner included.' },
-    { id: '3', name: 'Surf & Yoga Retreat', type: 'Wellness', date: 'June 1–3, 2026', description: 'Combine morning yoga sessions on the shore with afternoon surf lessons for all skill levels.' },
-  ],
-  food: [
-    { id: '1', name: 'Street Food Carnival', type: 'Street Food', date: 'April 19, 2026', description: 'Explore dozens of street food stalls featuring cuisines from around the world in one vibrant space.' },
-    { id: '2', name: 'Farm-to-Table Dinner', type: 'Fine Dining', date: 'May 3, 2026', description: 'An exclusive 5-course dinner by renowned chefs using locally sourced, seasonal ingredients.' },
-    { id: '3', name: 'Wine & Cheese Festival', type: 'Tasting', date: 'May 23–24, 2026', description: 'Discover premium wine and artisan cheese pairings with guided tastings from expert sommeliers.' },
-  ],
-  art: [
-    { id: '1', name: 'Modern Art Showcase', type: 'Gallery', date: 'April 22, 2026', description: 'A curated collection of contemporary works from emerging and established artists across five galleries.' },
-    { id: '2', name: 'Live Mural Painting', type: 'Live Art', date: 'May 8, 2026', description: 'Watch acclaimed muralists transform a blank canvas into a masterpiece over a single 8-hour session.' },
-    { id: '3', name: 'Sculpture Garden Walk', type: 'Installation', date: 'May 17–18, 2026', description: 'Stroll through an outdoor garden featuring large-scale sculptures and immersive art installations.' },
-  ],
-};
-
-// ─── Seed messages ────────────────────────────────────────────────────────────
+// ─── Seed messages (keyed by event name) ─────────────────────────────────────
 
 type Message = {
   id: string;
@@ -115,86 +15,81 @@ type Message = {
 };
 
 const seedMessages: Record<string, Message[]> = {
-  'music-1': [
-    { id: 'm1', author: 'Lena Fischer', avatar: 'LF', text: 'Can\'t wait for Jazz Night! Anyone else planning to arrive early?', timestamp: '2:14 PM' },
-    { id: 'm2', author: 'Marco Bianchi', avatar: 'MB', text: 'Yes! Doors open at 7 so I\'ll be there around 6:45 to grab a good seat.', timestamp: '2:17 PM' },
+  'Jazz Night': [
+    { id: 'm1', author: 'Lena Fischer',  avatar: 'LF', text: "Can't wait for Jazz Night! Anyone else planning to arrive early?", timestamp: '2:14 PM' },
+    { id: 'm2', author: 'Marco Bianchi', avatar: 'MB', text: "Yes! Doors open at 7 so I'll be there around 6:45 to grab a good seat.", timestamp: '2:17 PM' },
     { id: 'm3', author: 'Sofia Herrera', avatar: 'SH', text: 'Is parking easy near the venue?', timestamp: '2:21 PM' },
-    { id: 'm4', author: 'Marco Bianchi', avatar: 'MB', text: 'There\'s a public lot two blocks east — about $8 for the evening.', timestamp: '2:23 PM' },
+    { id: 'm4', author: 'Marco Bianchi', avatar: 'MB', text: "There's a public lot two blocks east — about $8 for the evening.", timestamp: '2:23 PM' },
   ],
-  'music-2': [
+  'Rock Festival': [
     { id: 'm1', author: 'Jordan Lee', avatar: 'JL', text: 'Rock Festival day one lineup just dropped. Main stage kicks off at 4 PM!', timestamp: '11:05 AM' },
-    { id: 'm2', author: 'Priya Nair', avatar: 'PN', text: 'Which bands are you most excited about?', timestamp: '11:09 AM' },
+    { id: 'm2', author: 'Priya Nair',  avatar: 'PN', text: 'Which bands are you most excited about?', timestamp: '11:09 AM' },
     { id: 'm3', author: 'Jordan Lee', avatar: 'JL', text: 'Definitely the headliner on Saturday night. The pyrotechnics alone are worth it.', timestamp: '11:12 AM' },
   ],
-  'music-3': [
-    { id: 'm1', author: 'Elena Vasquez', avatar: 'EV', text: 'The Classical Orchestra performance is tomorrow — has anyone listened to the programme?', timestamp: '4:30 PM' },
-    { id: 'm2', author: 'Theo Müller', avatar: 'TM', text: 'Beethoven\'s 9th is on the setlist. That finale is going to be incredible.', timestamp: '4:35 PM' },
+  'Classical Orchestra': [
+    { id: 'm1', author: 'Elena Vasquez', avatar: 'EV', text: "The Classical Orchestra performance is tomorrow — has anyone listened to the programme?", timestamp: '4:30 PM' },
+    { id: 'm2', author: 'Theo Müller',   avatar: 'TM', text: "Beethoven's 9th is on the setlist. That finale is going to be incredible.", timestamp: '4:35 PM' },
   ],
-  'hiking-1': [
-    { id: 'm1', author: 'Ivan Petrov', avatar: 'IP', text: 'Rila hike crew, who\'s bringing trekking poles? Trail to the lakes can be slippery in April.', timestamp: '9:00 AM' },
-    { id: 'm2', author: 'Ana Costa', avatar: 'AC', text: 'I have a spare pair if anyone needs to borrow!', timestamp: '9:04 AM' },
+  'Rila Mountain': [
+    { id: 'm1', author: 'Ivan Petrov', avatar: 'IP', text: "Rila hike crew, who's bringing trekking poles? Trail to the lakes can be slippery in April.", timestamp: '9:00 AM' },
+    { id: 'm2', author: 'Ana Costa',   avatar: 'AC', text: 'I have a spare pair if anyone needs to borrow!', timestamp: '9:04 AM' },
     { id: 'm3', author: 'Yuki Tanaka', avatar: 'YT', text: 'What about weather? Forecast looks a bit cloudy for day two.', timestamp: '9:08 AM' },
     { id: 'm4', author: 'Ivan Petrov', avatar: 'IP', text: 'Pack a light rain jacket just in case. The mountain weather changes fast.', timestamp: '9:11 AM' },
   ],
-  'hiking-2': [
-    { id: 'm1', author: 'Bogdan Iliescu', avatar: 'BI', text: 'Pirin trek starts at Predela pass, right? Anyone driving from Sofia and has a free seat?', timestamp: '3:00 PM' },
+  'Pirin Mountain': [
+    { id: 'm1', author: 'Bogdan Iliescu', avatar: 'BI', text: "Pirin trek starts at Predela pass, right? Anyone driving from Sofia and has a free seat?", timestamp: '3:00 PM' },
     { id: 'm2', author: 'Marta Kowalski', avatar: 'MK', text: 'I have one seat free — leaving Saturday at 6 AM from NDK.', timestamp: '3:05 PM' },
   ],
-  'hiking-3': [
-    { id: 'm1', author: 'Alex Dimitrov', avatar: 'AD', text: 'Vitosha day hike — are we taking the Aleko route or going through Zlatni Mostove?', timestamp: '10:00 AM' },
-    { id: 'm2', author: 'Sara Patel', avatar: 'SP', text: 'Zlatni Mostove has the river rocks which are super scenic this time of year!', timestamp: '10:03 AM' },
-    { id: 'm3', author: 'Alex Dimitrov', avatar: 'AD', text: 'Great call, let\'s do that route then.', timestamp: '10:06 AM' },
+  'Vitosha Mountain': [
+    { id: 'm1', author: 'Alex Dimitrov', avatar: 'AD', text: "Vitosha day hike — are we taking the Aleko route or going through Zlatni Mostove?", timestamp: '10:00 AM' },
+    { id: 'm2', author: 'Sara Patel',    avatar: 'SP', text: 'Zlatni Mostove has the river rocks which are super scenic this time of year!', timestamp: '10:03 AM' },
+    { id: 'm3', author: 'Alex Dimitrov', avatar: 'AD', text: "Great call, let's do that route then.", timestamp: '10:06 AM' },
   ],
-  'beach-1': [
-    { id: 'm1', author: 'Nadia Rousseau', avatar: 'NR', text: 'Sunny Beach crew — anyone know if paddleboards are included or extra cost?', timestamp: '1:00 PM' },
-    { id: 'm2', author: 'Carlos Ortiz', avatar: 'CO', text: 'I checked — paddleboards are included with the registration!', timestamp: '1:04 PM' },
-    { id: 'm3', author: 'Nadia Rousseau', avatar: 'NR', text: 'Amazing, that\'s such a great deal. See you all there!', timestamp: '1:06 PM' },
+  'Sunny Beach Weekend': [
+    { id: 'm1', author: 'Nadia Rousseau', avatar: 'NR', text: "Sunny Beach crew — anyone know if paddleboards are included or extra cost?", timestamp: '1:00 PM' },
+    { id: 'm2', author: 'Carlos Ortiz',   avatar: 'CO', text: 'I checked — paddleboards are included with the registration!', timestamp: '1:04 PM' },
+    { id: 'm3', author: 'Nadia Rousseau', avatar: 'NR', text: "Amazing, that's such a great deal. See you all there!", timestamp: '1:06 PM' },
   ],
-  'beach-2': [
+  'Sunset Sailing': [
     { id: 'm1', author: 'Thomas Eriksson', avatar: 'TE', text: 'Sunset Sailing — dress code? Is smart casual appropriate?', timestamp: '5:00 PM' },
-    { id: 'm2', author: 'Lila Moreau', avatar: 'LM', text: 'The invite said "resort elegant" — so think flowy dresses and linen shirts.', timestamp: '5:05 PM' },
+    { id: 'm2', author: 'Lila Moreau',     avatar: 'LM', text: 'The invite said "resort elegant" — so think flowy dresses and linen shirts.', timestamp: '5:05 PM' },
     { id: 'm3', author: 'Thomas Eriksson', avatar: 'TE', text: 'Perfect, thanks! The gourmet dinner menu looks incredible too.', timestamp: '5:07 PM' },
   ],
-  'beach-3': [
-    { id: 'm1', author: 'Kai Nakamura', avatar: 'KN', text: 'Surf & Yoga Retreat — what skill level is the surfing part? Total beginner here!', timestamp: '8:00 AM' },
-    { id: 'm2', author: 'Maya Santos', avatar: 'MS', text: 'Instructors cover all levels. I was a complete novice last year and it was amazing.', timestamp: '8:05 AM' },
+  'Surf & Yoga Retreat': [
+    { id: 'm1', author: 'Kai Nakamura', avatar: 'KN', text: "Surf & Yoga Retreat — what skill level is the surfing part? Total beginner here!", timestamp: '8:00 AM' },
+    { id: 'm2', author: 'Maya Santos',  avatar: 'MS', text: 'Instructors cover all levels. I was a complete novice last year and it was amazing.', timestamp: '8:05 AM' },
   ],
-  'food-1': [
-    { id: 'm1', author: 'Amara Diallo', avatar: 'AD', text: 'Street Food Carnival — which country\'s cuisine are you most excited to try?', timestamp: '12:00 PM' },
-    { id: 'm2', author: 'Ren Chen', avatar: 'RC', text: 'Hoping for a great Thai stall. Last year\'s pad thai was unforgettable.', timestamp: '12:03 PM' },
-    { id: 'm3', author: 'Amara Diallo', avatar: 'AD', text: 'Ethiopian injera for me! Fingers crossed it\'s there again.', timestamp: '12:05 PM' },
-    { id: 'm4', author: 'Lucas Ferreira', avatar: 'LF', text: 'They also confirmed a Brazilian churrasco grill this year!', timestamp: '12:08 PM' },
+  'Street Food Carnival': [
+    { id: 'm1', author: 'Amara Diallo',  avatar: 'AD', text: "Street Food Carnival — which country's cuisine are you most excited to try?", timestamp: '12:00 PM' },
+    { id: 'm2', author: 'Ren Chen',      avatar: 'RC', text: "Hoping for a great Thai stall. Last year's pad thai was unforgettable.", timestamp: '12:03 PM' },
+    { id: 'm3', author: 'Amara Diallo',  avatar: 'AD', text: 'Ethiopian injera for me! Fingers crossed it\'s there again.', timestamp: '12:05 PM' },
+    { id: 'm4', author: 'Lucas Ferreira',avatar: 'LF', text: 'They also confirmed a Brazilian churrasco grill this year!', timestamp: '12:08 PM' },
   ],
-  'food-2': [
-    { id: 'm1', author: 'Charlotte Dubois', avatar: 'CD', text: 'Farm-to-Table Dinner — does anyone know if vegetarian options are available for all 5 courses?', timestamp: '6:00 PM' },
-    { id: 'm2', author: 'Ethan Brooks', avatar: 'EB', text: 'Yes! I emailed the organiser and they confirmed a full vegetarian tasting menu.', timestamp: '6:04 PM' },
-    { id: 'm3', author: 'Charlotte Dubois', avatar: 'CD', text: 'That\'s wonderful, thank you!', timestamp: '6:06 PM' },
+  'Farm-to-Table Dinner': [
+    { id: 'm1', author: 'Charlotte Dubois', avatar: 'CD', text: "Farm-to-Table Dinner — does anyone know if vegetarian options are available for all 5 courses?", timestamp: '6:00 PM' },
+    { id: 'm2', author: 'Ethan Brooks',     avatar: 'EB', text: 'Yes! I emailed the organiser and they confirmed a full vegetarian tasting menu.', timestamp: '6:04 PM' },
+    { id: 'm3', author: 'Charlotte Dubois', avatar: 'CD', text: "That's wonderful, thank you!", timestamp: '6:06 PM' },
   ],
-  'food-3': [
+  'Wine & Cheese Festival': [
     { id: 'm1', author: 'Valentina Greco', avatar: 'VG', text: 'Wine & Cheese Festival — do tickets include unlimited tastings or is it per pour?', timestamp: '3:30 PM' },
-    { id: 'm2', author: 'Oliver Schmitt', avatar: 'OS', text: 'Tickets include 6 wine pours and 4 cheese selections. Extra tokens are $5 each.', timestamp: '3:34 PM' },
+    { id: 'm2', author: 'Oliver Schmitt',  avatar: 'OS', text: 'Tickets include 6 wine pours and 4 cheese selections. Extra tokens are $5 each.', timestamp: '3:34 PM' },
   ],
-  'art-1': [
+  'Modern Art Showcase': [
     { id: 'm1', author: 'Isabelle Laurent', avatar: 'IL', text: 'Modern Art Showcase — the preview images look stunning. Any favourites already?', timestamp: '11:00 AM' },
-    { id: 'm2', author: 'Hana Yoshida', avatar: 'HY', text: 'Room 3 — the large-scale canvas work. Photos don\'t do it justice apparently.', timestamp: '11:04 AM' },
+    { id: 'm2', author: 'Hana Yoshida',     avatar: 'HY', text: "Room 3 — the large-scale canvas work. Photos don't do it justice apparently.", timestamp: '11:04 AM' },
     { id: 'm3', author: 'Isabelle Laurent', avatar: 'IL', text: 'Definitely putting that first on my list. Guided tour or self-explore?', timestamp: '11:07 AM' },
-    { id: 'm4', author: 'Hana Yoshida', avatar: 'HY', text: 'There\'s a guided tour at 2 PM and 5 PM, or you can go at your own pace.', timestamp: '11:09 AM' },
+    { id: 'm4', author: 'Hana Yoshida',     avatar: 'HY', text: "There's a guided tour at 2 PM and 5 PM, or you can go at your own pace.", timestamp: '11:09 AM' },
   ],
-  'art-2': [
+  'Live Mural Painting': [
     { id: 'm1', author: 'Damien Rousseau', avatar: 'DR', text: 'Live Mural Painting — will there be a chance to meet the artists afterwards?', timestamp: '2:00 PM' },
-    { id: 'm2', author: 'Zoe Andersen', avatar: 'ZA', text: 'Yes! There\'s a meet & greet with light refreshments at 6 PM once the mural wraps.', timestamp: '2:04 PM' },
+    { id: 'm2', author: 'Zoe Andersen',    avatar: 'ZA', text: "Yes! There's a meet & greet with light refreshments at 6 PM once the mural wraps.", timestamp: '2:04 PM' },
   ],
-  'art-3': [
+  'Sculpture Garden Walk': [
     { id: 'm1', author: 'Finn Larsson', avatar: 'FL', text: 'Sculpture Garden Walk — is the path accessible for wheelchairs and pushchairs?', timestamp: '9:30 AM' },
     { id: 'm2', author: 'Cleo Baptiste', avatar: 'CB', text: 'The main paths are paved and fully accessible. Some of the side trails are gravel though.', timestamp: '9:35 AM' },
     { id: 'm3', author: 'Finn Larsson', avatar: 'FL', text: 'Good to know, thanks! The main path will be perfect.', timestamp: '9:37 AM' },
   ],
 };
-
-function getInitialMessages(category: string, eventId: string): Message[] {
-  const key = `${category}-${eventId}`;
-  return seedMessages[key] ?? [];
-}
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -293,27 +188,38 @@ function MessageBubble({ msg, isOwn }: { msg: Message; isOwn: boolean }) {
 export default function Conversation() {
   const { category = '', eventId = '' } = useParams<{ category: string; eventId: string }>();
 
-  const cat = categories.find((c) => c.slug === category);
-  const events = eventsByCategory[category] ?? [];
-  const event = events.find((e) => e.id === eventId);
-
-  const [messages, setMessages] = useState<Message[]>(() =>
-    getInitialMessages(category, eventId),
-  );
+  const [event, setEvent] = useState<EventItem | null>(null);
+  const [loadingEvent, setLoadingEvent] = useState(true);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  // Load event from Supabase by UUID, then seed messages by event name
+  useEffect(() => {
+    let cancelled = false;
+    setLoadingEvent(true);
+
+    fetchEventById(eventId).then((data) => {
+      if (cancelled) return;
+      setEvent(data);
+      setMessages(data ? (seedMessages[data.name] ?? []) : []);
+      setLoadingEvent(false);
+    });
+
+    return () => { cancelled = true; };
+  }, [eventId]);
+
+  // Scroll to bottom whenever messages change
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const cat = event ? categories.find((c) => c.label === event.category) : null;
+
   function handleSend() {
     const text = draft.trim();
     if (!text) return;
-
-    const now = new Date();
-    const timestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     setMessages((prev) => [
       ...prev,
       { id: `u-${Date.now()}`, author: 'You', avatar: 'Yo', text, timestamp, isOwn: true },
@@ -328,9 +234,19 @@ export default function Conversation() {
     }
   }
 
-  // ── Not found states ──────────────────────────────────────────────────────
+  // ── Loading state ─────────────────────────────────────────────────────────
 
-  if (!cat || !event) {
+  if (loadingEvent) {
+    return (
+      <div className="mx-auto max-w-7xl px-6 py-28 text-center sm:px-8">
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-violet-100 border-t-violet-500" />
+      </div>
+    );
+  }
+
+  // ── Not found ─────────────────────────────────────────────────────────────
+
+  if (!event || !cat) {
     return (
       <div className="mx-auto max-w-7xl px-6 py-28 text-center sm:px-8">
         <p className="text-lg font-semibold text-gray-900">Event not found.</p>
@@ -422,15 +338,13 @@ export default function Conversation() {
         <div className="flex min-h-[420px] flex-col gap-4 overflow-y-auto px-6 py-6 md:min-h-[520px]">
           {messages.length === 0 ? (
             <div className="my-auto flex flex-col items-center justify-center gap-3 text-center">
-              <span className={[
-                'inline-flex h-16 w-16 items-center justify-center rounded-2xl text-3xl ring-1',
-                cat.iconRing,
-              ].join(' ')}>
+              <span className={['inline-flex h-16 w-16 items-center justify-center rounded-2xl text-3xl ring-1', cat.iconRing].join(' ')}>
                 {cat.emoji}
               </span>
               <p className="font-semibold text-gray-700">No messages yet</p>
               <p className="max-w-xs text-sm text-gray-400">
-                Be the first to start the conversation for <span className="font-medium text-gray-600">{event.name}</span>!
+                Be the first to start the conversation for{' '}
+                <span className="font-medium text-gray-600">{event.name}</span>!
               </p>
             </div>
           ) : (
@@ -481,7 +395,8 @@ export default function Conversation() {
             </div>
           </div>
           <p className="mt-2 pl-12 text-xs text-gray-400">
-            Press <kbd className="rounded border border-gray-200 bg-gray-50 px-1 py-px text-xs">Enter</kbd> to send &middot; <kbd className="rounded border border-gray-200 bg-gray-50 px-1 py-px text-xs">Shift+Enter</kbd> for new line
+            Press <kbd className="rounded border border-gray-200 bg-gray-50 px-1 py-px text-xs">Enter</kbd> to send &middot;{' '}
+            <kbd className="rounded border border-gray-200 bg-gray-50 px-1 py-px text-xs">Shift+Enter</kbd> for new line
           </p>
         </div>
       </div>
