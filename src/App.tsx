@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useAuth } from './hooks/useAuth';
 
 const logo = '/logo.png';
 
@@ -60,12 +61,12 @@ const socialLinks = [
   },
 ];
 
+// Static nav items (no auth-dependent items here)
 const navItems = [
   { label: 'Home', path: '/' },
   { label: 'Events', path: '/events' },
   { label: 'About', path: '/about' },
   { label: 'Contact', path: '/contact' },
-  { label: 'Auth', path: '/auth' },
 ];
 
 const NavLinkItem = ({
@@ -91,8 +92,57 @@ const NavLinkItem = ({
   </NavLink>
 );
 
+// ─── Auth nav section ─────────────────────────────────────────────────────────
+
+function AuthNav({ onMenuClose }: { onMenuClose?: () => void }) {
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    onMenuClose?.();
+    await logout();
+    navigate('/');
+  }
+
+  if (isLoading) return null;
+
+  if (isAuthenticated && user) {
+    const displayName = user.email?.split('@')[0] ?? 'Account';
+
+    return (
+      <div className="flex items-center gap-3">
+        {/* User pill */}
+        <span className="hidden rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-600 ring-1 ring-violet-200 sm:inline-block">
+          {displayName}
+        </span>
+        {/* Sign out */}
+        <button
+          onClick={handleLogout}
+          className="text-sm font-medium text-gray-500 transition-colors duration-200 hover:text-violet-600"
+        >
+          Sign out
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <NavLinkItem label="Sign In" path="/auth" onClick={onMenuClose} />
+  );
+}
+
+// ─── App ─────────────────────────────────────────────────────────────────────
+
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const navigate = useNavigate();
+
+  async function handleMobileLogout() {
+    setMenuOpen(false);
+    await logout();
+    navigate('/');
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-gray-900">
@@ -122,6 +172,7 @@ function App() {
             {navItems.map((item) => (
               <NavLinkItem key={item.path} {...item} />
             ))}
+            <AuthNav />
           </nav>
 
           {/* Hamburger button — mobile only */}
@@ -132,13 +183,11 @@ function App() {
             onClick={() => setMenuOpen((prev) => !prev)}
           >
             {menuOpen ? (
-              /* X icon */
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             ) : (
-              /* Hamburger icon */
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
                 <line x1="3" y1="6" x2="21" y2="6" />
                 <line x1="3" y1="12" x2="21" y2="12" />
@@ -161,6 +210,28 @@ function App() {
                   />
                 </li>
               ))}
+
+              {/* Auth row in mobile drawer */}
+              <li className="border-b border-violet-50 py-3 last:border-0">
+                {!isLoading && isAuthenticated && user ? (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">{user.email}</span>
+                    <button
+                      onClick={handleMobileLogout}
+                      className="text-sm font-semibold text-violet-600 transition hover:text-violet-800"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                ) : !isLoading ? (
+                  <NavLinkItem
+                    label="Sign In"
+                    path="/auth"
+                    onClick={() => setMenuOpen(false)}
+                    className="block py-0"
+                  />
+                ) : null}
+              </li>
             </ul>
           </nav>
         )}
