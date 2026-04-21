@@ -111,10 +111,13 @@ function AuthNav({ onMenuClose }: { onMenuClose?: () => void }) {
 
     return (
       <div className="flex items-center gap-3">
-        {/* User pill */}
-        <span className="hidden rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-600 ring-1 ring-violet-200 sm:inline-block">
+        {/* User pill — links to profile */}
+        <Link
+          to="/profile"
+          className="hidden rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-600 ring-1 ring-violet-200 transition-colors duration-200 hover:bg-violet-100 sm:inline-block"
+        >
           {displayName}
-        </span>
+        </Link>
         {/* Sign out */}
         <button
           onClick={handleLogout}
@@ -215,7 +218,13 @@ function App() {
               <li className="border-b border-violet-50 py-3 last:border-0">
                 {!isLoading && isAuthenticated && user ? (
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500">{user.email}</span>
+                    <Link
+                      to="/profile"
+                      onClick={() => setMenuOpen(false)}
+                      className="text-sm text-gray-500 hover:text-violet-600 transition-colors duration-200"
+                    >
+                      {user.email}
+                    </Link>
                     <button
                       onClick={handleMobileLogout}
                       className="text-sm font-semibold text-violet-600 transition hover:text-violet-800"
