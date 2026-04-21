@@ -1,4 +1,7 @@
+import { useAuth } from "../hooks/useAuth";
+
 const Contact = () => {
+  const {isAuthenticated} = useAuth();
   return (
     <section className="px-6 py-16 sm:px-8 lg:px-10 xl:px-12">
       <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
@@ -61,21 +64,6 @@ const Contact = () => {
               <h2 className="mt-2 text-xl font-semibold text-gray-900">We'd love to hear from you</h2>
             </div>
 
-            {[
-              { id: 'name', label: 'Name', type: 'text', placeholder: 'Your name' },
-              { id: 'email', label: 'Email', type: 'email', placeholder: 'you@example.com' },
-            ].map(({ id, label, type, placeholder }) => (
-              <div key={id}>
-                <label className="block text-sm font-medium text-gray-700" htmlFor={id}>{label}</label>
-                <input
-                  id={id}
-                  type={type}
-                  placeholder={placeholder}
-                  className="mt-2 w-full rounded-2xl border border-gray-200 bg-white/80 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 outline-none ring-violet-400 transition focus:border-violet-400 focus:ring-2"
-                />
-              </div>
-            ))}
-
             <div>
               <label className="block text-sm font-medium text-gray-700" htmlFor="message">Message</label>
               <textarea
@@ -87,10 +75,11 @@ const Contact = () => {
             </div>
 
             <button
+              disabled= {!isAuthenticated}
               type="submit"
-              className="gradient-iris w-full rounded-2xl px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-200 transition hover:opacity-90 active:scale-95"
+              className={isAuthenticated ? "gradient-iris w-full rounded-2xl px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-200 transition hover:opacity-90 active:scale-95" : "gradient-iris w-full rounded-2xl px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-200 transition hover:opacity-90 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:from-gray-400 disabled:to-gray-500 disabled:hover:opacity-50 disabled:active:scale-100"}
             >
-              Send message
+             {isAuthenticated ? "Send message" : "You need to be logged in to send a message"}
             </button>
           </div>
         </form>

@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-
 const features = [
   {
     title: 'Custom Event Pages',
@@ -29,11 +28,6 @@ const Home = () => {
         {/* Hero */}
         <div className="grid gap-16 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div className="space-y-8">
-            <span className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-4 py-1.5 text-sm font-medium text-violet-600">
-              <span className="gradient-iris inline-block h-2 w-2 rounded-full" />
-              Tailored event planning for modern teams
-            </span>
-
             <div className="space-y-5">
               <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl">
                 Build unforgettable events and keep{' '}
@@ -45,17 +39,17 @@ const Home = () => {
             </div>
 
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <a
-                href="#features"
+              <Link
+                to="/events"
                 className="gradient-iris inline-flex items-center justify-center rounded-full px-7 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-200 transition hover:opacity-90 active:scale-95"
               >
-                Explore features
-              </a>
+                Explore events
+              </Link>
               <Link
                 to="/contact"
                 className="inline-flex items-center justify-center rounded-full border border-gray-200 bg-white px-7 py-3 text-sm font-semibold text-gray-700 transition hover:border-violet-300 hover:text-violet-600"
               >
-                Contact sales
+                Contact Us
               </Link>
             </div>
           </div>
