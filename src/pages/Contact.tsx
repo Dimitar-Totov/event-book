@@ -1,12 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { sendContactMessage } from '../services/contact';
 
-// localStorage key scoped to the user so different accounts don't share state
-function sentKey(userId: string) {
-  return `contact_sent_${userId}`;
-}
 
 // ─── Success screen ───────────────────────────────────────────────────────────
 
@@ -42,19 +38,13 @@ function SuccessMessage({ name }: { name: string }) {
 
 // ─── Contact form ─────────────────────────────────────────────────────────────
 
-function ContactForm({ userEmail, userId }: { userEmail: string; userId: string }) {
+function ContactForm({ userEmail }: { userEmail: string; userId: string }) {
 
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
 
-  // Check if this user already sent a message in this session
-  useEffect(() => {
-    if (sessionStorage.getItem(sentKey(userId)) === 'true') {
-      setSent(true);
-    }
-  }, [userId]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -66,7 +56,6 @@ function ContactForm({ userEmail, userId }: { userEmail: string; userId: string 
     setSubmitting(true);
     try {
       await sendContactMessage({ name: userEmail, message });
-      sessionStorage.setItem(sentKey(userId), 'true');
       setSent(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
