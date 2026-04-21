@@ -317,6 +317,15 @@ const Auth = () => {
   const [signUpSuccess, setSignUpSuccess] = useState(false);
   const [signUpEmail, setSignUpEmail] = useState('');
 
+  // True once the initial session check completes (isLoading flips false for
+  // the first time). After that, auth operations (login / register) must NOT
+  // trigger the full-page spinner because it unmounts the forms and clears
+  // the user's input.
+  const [initialized, setInitialized] = useState(false);
+  useEffect(() => {
+    if (!isLoading) setInitialized(true);
+  }, [isLoading]);
+
   // Redirect already-authenticated users away from this page
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
@@ -364,8 +373,10 @@ const Auth = () => {
   const signInError = !isSignUp ? (localError || error) : null;
   const signUpError = isSignUp ? (localError || error) : null;
 
-  // Render a minimal loading screen during the initial session check
-  if (isLoading && !isAuthenticated) {
+  // Render a minimal loading screen only during the initial session check.
+  // Do NOT block on isLoading here — that would unmount the forms during
+  // login/register and wipe the user's typed input.
+  if (!initialized) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-violet-100 border-t-violet-500" />
