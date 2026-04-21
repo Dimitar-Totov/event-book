@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { categories } from '../services/categories';
 import { type EventItem, fetchJoinedEvents, leaveEvent } from '../services/events';
+import { fetchAvatarUrl, uploadAvatar } from '../services/avatar';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -28,20 +29,13 @@ function getCatConfig(categoryLabel: string) {
       accent: 'text-violet-600',
       pill: 'bg-violet-50 text-violet-700 ring-violet-200',
       gradientOverlay: 'from-violet-400 to-indigo-500',
+      gradientCard: 'from-violet-50 to-indigo-50',
+      iconRing: 'ring-violet-200/60 bg-white/60',
     }
   );
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
-
-function StatCard({ value, label }: { value: number | string; label: string }) {
-  return (
-    <div className="flex flex-col items-center gap-0.5">
-      <span className="text-2xl font-bold text-gray-900">{value}</span>
-      <span className="text-xs font-medium uppercase tracking-widest text-gray-400">{label}</span>
-    </div>
-  );
-}
 
 function EventCard({
   event,
@@ -57,21 +51,32 @@ function EventCard({
   return (
     <article
       className={[
-        'group relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-white/60',
-        'bg-white/70 p-5 shadow-md backdrop-blur-sm',
-        'transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg',
+        'group relative flex h-full flex-col overflow-hidden rounded-3xl',
+        'border border-white/60 bg-white shadow-md',
+        'transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl',
       ].join(' ')}
     >
-      {/* Left accent bar */}
-      <div className={`absolute left-0 top-0 h-full w-1 bg-gradient-to-b ${cat.gradientOverlay} rounded-l-2xl`} />
+      {/* Gradient header band */}
+      <div className={`relative bg-gradient-to-br ${cat.gradientCard} p-6`}>
+        {/* Decorative circle */}
+        <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/15 transition-transform duration-500 group-hover:scale-125" />
 
-      <div className="pl-3">
-        {/* Category + type pill row */}
-        <div className="flex items-center gap-2">
-          <span className="text-xl" aria-hidden="true">{cat.emoji}</span>
+        <div className="relative flex items-start justify-between gap-3">
+          {/* Emoji icon */}
           <span
             className={[
-              'inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1',
+              'flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-3xl ring-1',
+              cat.iconRing,
+            ].join(' ')}
+            aria-hidden="true"
+          >
+            {cat.emoji}
+          </span>
+
+          {/* Type pill top-right */}
+          <span
+            className={[
+              'mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1',
               cat.pill,
             ].join(' ')}
           >
@@ -79,46 +84,63 @@ function EventCard({
           </span>
         </div>
 
-        {/* Name */}
-        <h3 className="mt-2 text-base font-semibold leading-snug text-gray-900">
+        {/* Event name */}
+        <h3 className="mt-4 text-lg font-bold leading-snug text-gray-900 sm:text-xl">
           {event.name}
         </h3>
-
-        {/* Date & location */}
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
-          <span>📅 {event.date}</span>
-          {event.location && <span>📍 {event.location}</span>}
-        </div>
       </div>
 
-      {/* Footer: chat + leave */}
-      <div className="flex items-center justify-between pl-3">
-        <Link
-          to={`/events/${cat.slug}/${event.id}`}
-          className={[
-            'flex items-center gap-1 text-sm font-medium transition-colors duration-200',
-            cat.accent,
-            'hover:underline',
-          ].join(' ')}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5" aria-hidden="true">
-            <path fillRule="evenodd" d="M1 8.74c0 .983.713 1.825 1.69 1.943.764.092 1.534.162 2.31.208v2.36a.75.75 0 0 0 1.28.53l2.56-2.559c.24-.24.566-.375.905-.375H12a1.75 1.75 0 0 0 1.75-1.75V4.75A1.75 1.75 0 0 0 12 3H4A1.75 1.75 0 0 0 2.25 4.75v2.12c-.76.18-1.25.873-1.25 1.87ZM4 4.5h8a.25.25 0 0 1 .25.25v3.75A.25.25 0 0 1 12 8.75H9.745a2.25 2.25 0 0 0-1.59.659L6.5 11.06V9.5a.75.75 0 0 0-.75-.75H4a.25.25 0 0 1-.25-.25V4.75A.25.25 0 0 1 4 4.5Z" clipRule="evenodd" />
-          </svg>
-          Open chat
-        </Link>
+      {/* Body */}
+      <div className="flex flex-1 flex-col gap-4 p-6">
+        {/* Date & location */}
+        <div className="flex flex-col gap-1.5 text-sm text-gray-500">
+          <span className="flex items-center gap-2">
+            <span className="text-base" aria-hidden="true">📅</span>
+            {event.date}
+          </span>
+          {event.location && (
+            <span className="flex items-center gap-2">
+              <span className="text-base" aria-hidden="true">📍</span>
+              {event.location}
+            </span>
+          )}
+        </div>
 
-        <button
-          onClick={() => onLeave(event.id)}
-          disabled={leaving}
-          className={[
-            'rounded-full px-3 py-1 text-xs font-semibold ring-1 transition-all duration-200',
-            leaving
-              ? 'cursor-not-allowed opacity-50 ring-gray-200 text-gray-400'
-              : 'ring-red-200 text-red-500 hover:bg-red-50 hover:ring-red-300',
-          ].join(' ')}
-        >
-          {leaving ? 'Leaving…' : 'Leave'}
-        </button>
+        {/* Description */}
+        {event.description && (
+          <p className="line-clamp-2 text-sm leading-relaxed text-gray-400">
+            {event.description}
+          </p>
+        )}
+
+        {/* Spacer pushes footer to bottom */}
+        <div className="flex-1" />
+
+        {/* Footer CTAs */}
+        <div className="flex items-center justify-between border-t border-gray-100 pt-4">
+          <Link
+            to={`/events/${cat.slug}/${event.id}`}
+            className="flex items-center gap-1.5 rounded-full bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-violet-700 hover:shadow-md"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5" aria-hidden="true">
+              <path fillRule="evenodd" d="M1 8.74c0 .983.713 1.825 1.69 1.943.764.092 1.534.162 2.31.208v2.36a.75.75 0 0 0 1.28.53l2.56-2.559c.24-.24.566-.375.905-.375H12a1.75 1.75 0 0 0 1.75-1.75V4.75A1.75 1.75 0 0 0 12 3H4A1.75 1.75 0 0 0 2.25 4.75v2.12c-.76.18-1.25.873-1.25 1.87ZM4 4.5h8a.25.25 0 0 1 .25.25v3.75A.25.25 0 0 1 12 8.75H9.745a2.25 2.25 0 0 0-1.59.659L6.5 11.06V9.5a.75.75 0 0 0-.75-.75H4a.25.25 0 0 1-.25-.25V4.75A.25.25 0 0 1 4 4.5Z" clipRule="evenodd" />
+            </svg>
+            Open chat
+          </Link>
+
+          <button
+            onClick={() => onLeave(event.id)}
+            disabled={leaving}
+            className={[
+              'rounded-full px-4 py-2 text-xs font-semibold ring-1 transition-all duration-200',
+              leaving
+                ? 'cursor-not-allowed opacity-50 ring-gray-200 text-gray-400'
+                : 'ring-red-200 text-red-500 hover:bg-red-50 hover:ring-red-300',
+            ].join(' ')}
+          >
+            {leaving ? 'Leaving…' : 'Leave event'}
+          </button>
+        </div>
       </div>
     </article>
   );
@@ -133,6 +155,10 @@ export default function Profile() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [leavingId, setLeavingId] = useState<string | null>(null);
+
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Redirect guests
   useEffect(() => {
@@ -151,6 +177,31 @@ export default function Profile() {
       .catch(() => { if (!cancelled) setEventsLoading(false); });
     return () => { cancelled = true; };
   }, [isAuthenticated]);
+
+  // Load avatar
+  useEffect(() => {
+    if (!user) return;
+    fetchAvatarUrl(user.id).then(setAvatarUrl).catch(() => {});
+  }, [user]);
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    // Show preview immediately
+    const preview = URL.createObjectURL(file);
+    setAvatarUrl(preview);
+    setAvatarUploading(true);
+    try {
+      const url = await uploadAvatar(user.id, file);
+      setAvatarUrl(url);
+    } catch {
+      // On failure keep the preview; user can retry
+    } finally {
+      setAvatarUploading(false);
+      // Reset input so the same file can be re-selected if needed
+      e.target.value = '';
+    }
+  }
 
   async function handleLeave(eventId: string) {
     setLeavingId(eventId);
@@ -177,54 +228,105 @@ export default function Profile() {
   const memberSince = user.created_at ? formatMemberSince(user.created_at) : '—';
 
   return (
-    <div className="mx-auto max-w-3xl px-6 pb-28 pt-10 sm:px-8">
+    <div className="mx-auto max-w-7xl px-6 pb-28 pt-10 sm:px-8">
+      <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
+
+      {/* ── Sidebar: cover card ── */}
+      <div className="w-full lg:sticky lg:top-24 lg:w-80 lg:shrink-0">
 
       {/* Cover card */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-600 via-indigo-500 to-pink-500 shadow-xl">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-400 via-indigo-400 to-pink-400 shadow-xl">
         {/* Decorative circles */}
         <div className="absolute -right-12 -top-12 h-48 w-48 rounded-full bg-white/10" />
         <div className="absolute -bottom-8 -left-8 h-36 w-36 rounded-full bg-white/10" />
         <div className="absolute right-1/3 top-4 h-16 w-16 rounded-full bg-white/10" />
 
         <div className="relative px-8 pb-10 pt-10">
-          {/* Avatar */}
-          <div className="flex items-end gap-5">
-            <div className="relative">
-              <div
-                className="flex h-20 w-20 items-center justify-center rounded-full bg-white/20 text-2xl font-bold text-white ring-4 ring-white/60 backdrop-blur-sm sm:h-24 sm:w-24 sm:text-3xl"
-                aria-label={`Avatar for ${displayName}`}
-              >
-                {initials}
-              </div>
-              {/* Online dot */}
-              <span className="absolute bottom-1 right-1 h-4 w-4 rounded-full border-2 border-white bg-emerald-400 sm:h-4 sm:w-4" />
-            </div>
+          {/* Avatar row */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-end gap-4">
+              <div className="relative shrink-0">
+                {/* Clickable avatar */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="group relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/20 ring-4 ring-white/60 backdrop-blur-sm focus-visible:outline-none focus-visible:ring-white sm:h-24 sm:w-24"
+                  aria-label="Change profile photo"
+                  title="Change profile photo"
+                >
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt={displayName}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-2xl font-bold text-white sm:text-3xl">{initials}</span>
+                  )}
 
-            {/* Name / email */}
-            <div className="mb-1 flex-1 min-w-0">
-              <h1 className="truncate text-2xl font-bold text-white sm:text-3xl">{displayName}</h1>
-              <p className="truncate text-sm text-white/70">{email}</p>
+                  {/* Hover overlay with camera icon */}
+                  <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                    {avatarUploading ? (
+                      <svg className="h-6 w-6 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6 text-white" aria-hidden="true">
+                        <path d="M12 9a3.75 3.75 0 1 0 0 7.5A3.75 3.75 0 0 0 12 9Z" />
+                        <path fillRule="evenodd" d="M9.344 3.071a49.52 49.52 0 0 1 5.312 0c.967.052 1.83.585 2.332 1.39l.821 1.317c.24.383.645.643 1.11.71.386.054.77.113 1.152.177 1.432.239 2.429 1.493 2.429 2.909V18a3 3 0 0 1-3 3h-15a3 3 0 0 1-3-3V9.574c0-1.416.997-2.67 2.429-2.909.382-.064.766-.123 1.151-.178a1.56 1.56 0 0 0 1.11-.71l.822-1.315a2.942 2.942 0 0 1 2.332-1.39ZM6.75 12.75a5.25 5.25 0 1 1 10.5 0 5.25 5.25 0 0 1-10.5 0Zm12-1.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </span>
+                </button>
+
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  className="hidden"
+                  onChange={handleAvatarChange}
+                />
+
+                {/* Online dot */}
+                <span className="absolute bottom-0 right-0 h-4 w-4 rounded-full border-2 border-white bg-emerald-400" />
+              </div>
+
+              {/* Name / email */}
+              <div className="mb-1 min-w-0">
+                <h1 className="truncate text-xl font-bold text-white sm:text-2xl">{displayName}</h1>
+                <p className="truncate text-sm text-white/80">{email}</p>
+              </div>
             </div>
           </div>
 
           {/* Member since */}
-          <p className="mt-4 text-xs font-medium uppercase tracking-widest text-white/60">
+          <p className="mt-4 text-xs font-medium uppercase tracking-widest text-white/70">
             Member since {memberSince}
           </p>
 
           {/* Stats row */}
-          <div className="mt-6 flex items-center gap-8 rounded-2xl bg-white/15 px-6 py-4 backdrop-blur-sm">
-            <StatCard value={events.length} label="Events joined" />
-            <div className="h-8 w-px bg-white/20" />
-            <StatCard value="—" label="Followers" />
-            <div className="h-8 w-px bg-white/20" />
-            <StatCard value="—" label="Following" />
+          <div className="mt-5 grid grid-cols-3 divide-x divide-white/20 rounded-2xl bg-white/15 backdrop-blur-sm">
+            <div className="flex flex-col items-center gap-0.5 px-3 py-4">
+              <span className="text-xl font-bold text-white sm:text-2xl">{events.length}</span>
+              <span className="text-center text-[10px] font-semibold uppercase tracking-wider text-white/70 sm:text-xs">Events joined</span>
+            </div>
+            <div className="flex flex-col items-center gap-0.5 px-3 py-4">
+              <span className="text-xl font-bold text-white sm:text-2xl">—</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-white/70 sm:text-xs">Followers</span>
+            </div>
+            <div className="flex flex-col items-center gap-0.5 px-3 py-4">
+              <span className="text-xl font-bold text-white sm:text-2xl">—</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-white/70 sm:text-xs">Following</span>
+            </div>
           </div>
         </div>
       </div>
+      </div>{/* end sidebar */}
 
-      {/* My Events section */}
-      <div className="mt-10">
+      {/* ── Main content: My Events ── */}
+      <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-gray-900">My Events</h2>
           {!eventsLoading && (
@@ -258,9 +360,9 @@ export default function Profile() {
           </div>
         )}
 
-        {/* Event list */}
+        {/* Event grid */}
         {!eventsLoading && events.length > 0 && (
-          <ul className="mt-5 grid gap-4 sm:grid-cols-2">
+          <ul className="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {events.map((event, i) => (
               <li
                 key={event.id}
@@ -276,7 +378,9 @@ export default function Profile() {
             ))}
           </ul>
         )}
-      </div>
+      </div>{/* end main content */}
+
+      </div>{/* end flex row */}
     </div>
   );
 }
