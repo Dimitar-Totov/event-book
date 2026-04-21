@@ -127,7 +127,7 @@ function EventCard({
 // ─── Profile page ─────────────────────────────────────────────────────────────
 
 export default function Profile() {
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const [events, setEvents] = useState<EventItem[]>([]);
@@ -160,11 +160,6 @@ export default function Profile() {
     } finally {
       setLeavingId(null);
     }
-  }
-
-  async function handleLogout() {
-    await logout();
-    navigate('/');
   }
 
   // Loading / redirect guard
@@ -210,14 +205,6 @@ export default function Profile() {
               <h1 className="truncate text-2xl font-bold text-white sm:text-3xl">{displayName}</h1>
               <p className="truncate text-sm text-white/70">{email}</p>
             </div>
-
-            {/* Sign out button */}
-            <button
-              onClick={handleLogout}
-              className="mb-1 shrink-0 rounded-full bg-white/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-all duration-200 hover:bg-white/30"
-            >
-              Sign out
-            </button>
           </div>
 
           {/* Member since */}

@@ -108,3 +108,78 @@ export async function fetchEventById(id: string): Promise<EventItem | null> {
   if (error || !data) return null;
   return mapRow(data as EventRow);
 }
+
+// ─── User event membership ────────────────────────────────────────────────────
+
+/**
+ * Returns the set of event IDs the current user has joined.
+ * Returns an empty Set when no user is logged in.
+ */
+export async function fetchJoinedEventIds(): Promise<Set<string>> {
+  const { data, error } = await supabase
+    .from('user_events')
+    .select('event_id');
+
+  if (error || !data) return new Set();
+  return new Set(data.map((row: { event_id: string }) => row.event_id));
+}
+
+/**
+ * Fetch full EventItem details for every event the current user has joined,
+ * ordered by when they joined (newest first).
+ */
+export async function fetchJoinedEvents(): Promise<EventItem[]> {
+  const { data: membership, error: membershipError } = await supabase
+    .from('user_events')
+    .select('event_id, created_at')
+    .order('created_at', { ascending: false });
+
+  if (membershipError || !membership || membership.length === 0) return [];
+
+  const eventIds = membership.map((row: { event_id: string }) => row.event_id);
+
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .in('id', eventIds);
+
+  if (error || !data) return [];
+
+  // Preserve the join order (newest first)
+  const indexById = Object.fromEntries(
+    membership.map((row: { event_id: string }, i: number) => [row.event_id, i]),
+  );
+  return (data as EventRow[])
+    .map(mapRow)
+    .sort((a, b) => (indexById[a.id] ?? 0) - (indexById[b.id] ?? 0));
+}
+
+/**
+ * Join an event. Requires an authenticated session.
+ * Silently ignores duplicate joins (Supabase returns an error on unique constraint).
+ */
+export async function joinEvent(eventId: string): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Must be signed in to join an event.');
+
+  const { error } = await supabase
+    .from('user_events')
+    .insert({ user_id: user.id, event_id: eventId });
+
+  // Unique constraint violation means already joined — treat as success
+  if (error && !error.message.includes('duplicate') && !error.code?.includes('23505')) {
+    throw new Error(error.message);
+  }
+}
+
+/**
+ * Leave an event. Requires an authenticated session.
+ */
+export async function leaveEvent(eventId: string): Promise<void> {
+  const { error } = await supabase
+    .from('user_events')
+    .delete()
+    .eq('event_id', eventId);
+
+  if (error) throw new Error(error.message);
+}

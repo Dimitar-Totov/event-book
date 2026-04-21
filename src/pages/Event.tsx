@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import { categories } from '../services/categories';
-import { type EventItem, fetchEventsByCategory } from '../services/events';
+import { type EventItem, fetchEventsByCategory, fetchJoinedEventIds, joinEvent, leaveEvent } from '../services/events';
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
@@ -17,6 +18,24 @@ function ArrowRight({ className = '' }: { className?: string }) {
       <path
         fillRule="evenodd"
         d="M3 10a.75.75 0 0 1 .75-.75h10.638L10.23 5.29a.75.75 0 1 1 1.04-1.08l5.5 5.25a.75.75 0 0 1 0 1.08l-5.5 5.25a.75.75 0 1 1-1.04-1.08l4.158-3.96H3.75A.75.75 0 0 1 3 10Z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
+function CheckIcon({ className = '' }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        fillRule="evenodd"
+        d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z"
         clipRule="evenodd"
       />
     </svg>
@@ -123,11 +142,16 @@ function CategoriesPage() {
 
 function CategoryPage({ slug }: { slug: string }) {
   const cat = categories.find((c) => c.slug === slug);
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [joinedIds, setJoinedIds] = useState<Set<string>>(new Set());
+  const [joiningId, setJoiningId] = useState<string | null>(null);
 
+  // Load events
   useEffect(() => {
     if (!cat) {
       setLoading(false);
@@ -153,6 +177,33 @@ function CategoryPage({ slug }: { slug: string }) {
 
     return () => { cancelled = true; };
   }, [slug]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Load joined event IDs for authenticated users
+  useEffect(() => {
+    if (!isAuthenticated) { setJoinedIds(new Set()); return; }
+    fetchJoinedEventIds().then(setJoinedIds).catch(() => {});
+  }, [isAuthenticated]);
+
+  const handleJoin = useCallback(async (eventId: string) => {
+    if (!isAuthenticated) { navigate('/auth'); return; }
+    setJoiningId(eventId);
+    try {
+      await joinEvent(eventId);
+      setJoinedIds((prev) => new Set([...prev, eventId]));
+    } finally {
+      setJoiningId(null);
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleLeave = useCallback(async (eventId: string) => {
+    setJoiningId(eventId);
+    try {
+      await leaveEvent(eventId);
+      setJoinedIds((prev) => { const next = new Set(prev); next.delete(eventId); return next; });
+    } finally {
+      setJoiningId(null);
+    }
+  }, []);
 
   if (!cat) {
     return (
@@ -287,15 +338,36 @@ function CategoryPage({ slug }: { slug: string }) {
 
                   {/* Footer CTAs */}
                   <div className="mt-6 flex items-center gap-4">
-                    <div className={[
-                      'flex items-center gap-1 text-sm font-semibold transition-colors duration-200',
-                      cat.accent,
-                    ].join(' ')}>
-                      <Link to="/auth" className="focus-visible:outline-none focus-visible:underline">
-                        Reserve a spot
-                      </Link>
-                      <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-                    </div>
+                    {/* Join / Leave button */}
+                    {joinedIds.has(event.id) ? (
+                      <button
+                        onClick={() => handleLeave(event.id)}
+                        disabled={joiningId === event.id}
+                        className={[
+                          'flex items-center gap-1 text-sm font-semibold transition-colors duration-200',
+                          joiningId === event.id ? 'cursor-not-allowed opacity-50' : '',
+                          'text-emerald-600 hover:text-red-500',
+                        ].join(' ')}
+                      >
+                        <CheckIcon className="h-3.5 w-3.5" />
+                        {joiningId === event.id ? 'Leaving…' : 'Joined'}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleJoin(event.id)}
+                        disabled={joiningId === event.id}
+                        className={[
+                          'flex items-center gap-1 text-sm font-semibold transition-colors duration-200',
+                          joiningId === event.id ? 'cursor-not-allowed opacity-50' : '',
+                          cat.accent,
+                        ].join(' ')}
+                      >
+                        {joiningId === event.id ? 'Joining…' : 'Reserve a spot'}
+                        {joiningId !== event.id && (
+                          <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+                        )}
+                      </button>
+                    )}
                     <Link
                       to={`/events/${slug}/${event.id}`}
                       className="flex items-center gap-1 text-sm font-medium text-gray-400 transition-colors duration-200 hover:text-gray-600 focus-visible:outline-none focus-visible:underline"
