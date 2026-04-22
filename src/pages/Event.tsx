@@ -369,15 +369,38 @@ function CategoryPage({ slug }: { slug: string }) {
                       </button>
                     )}
                     {isAuthenticated && (
-                      <Link
-                        to={`/events/${slug}/${event.id}`}
-                        className="flex items-center gap-1 text-sm font-medium text-gray-400 transition-colors duration-200 hover:text-gray-600 focus-visible:outline-none focus-visible:underline"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" className="h-3.5 w-3.5">
-                          <path fillRule="evenodd" d="M1 8.74c0 .983.713 1.825 1.69 1.943.764.092 1.534.162 2.31.208v2.36a.75.75 0 0 0 1.28.53l2.56-2.559c.24-.24.566-.375.905-.375H12a1.75 1.75 0 0 0 1.75-1.75V4.75A1.75 1.75 0 0 0 12 3H4A1.75 1.75 0 0 0 2.25 4.75v2.12c-.76.18-1.25.873-1.25 1.87ZM4 4.5h8a.25.25 0 0 1 .25.25v3.75A.25.25 0 0 1 12 8.75H9.745a2.25 2.25 0 0 0-1.59.659L6.5 11.06V9.5a.75.75 0 0 0-.75-.75H4a.25.25 0 0 1-.25-.25V4.75A.25.25 0 0 1 4 4.5Z" clipRule="evenodd" />
-                        </svg>
-                        Chat
-                      </Link>
+                      joinedIds.has(event.id) ? (
+                        <Link
+                          to={`/events/${slug}/${event.id}`}
+                          className="flex items-center gap-1 text-sm font-medium text-gray-400 transition-colors duration-200 hover:text-gray-600 focus-visible:outline-none focus-visible:underline"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" className="h-3.5 w-3.5">
+                            <path fillRule="evenodd" d="M1 8.74c0 .983.713 1.825 1.69 1.943.764.092 1.534.162 2.31.208v2.36a.75.75 0 0 0 1.28.53l2.56-2.559c.24-.24.566-.375.905-.375H12a1.75 1.75 0 0 0 1.75-1.75V4.75A1.75 1.75 0 0 0 12 3H4A1.75 1.75 0 0 0 2.25 4.75v2.12c-.76.18-1.25.873-1.25 1.87ZM4 4.5h8a.25.25 0 0 1 .25.25v3.75A.25.25 0 0 1 12 8.75H9.745a2.25 2.25 0 0 0-1.59.659L6.5 11.06V9.5a.75.75 0 0 0-.75-.75H4a.25.25 0 0 1-.25-.25V4.75A.25.25 0 0 1 4 4.5Z" clipRule="evenodd" />
+                          </svg>
+                          Chat
+                        </Link>
+                      ) : (
+                        <div className="group/chat relative">
+                          <span className="flex cursor-default items-center gap-1 text-sm font-medium text-gray-300 select-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" className="h-3.5 w-3.5">
+                              <path fillRule="evenodd" d="M1 8.74c0 .983.713 1.825 1.69 1.943.764.092 1.534.162 2.31.208v2.36a.75.75 0 0 0 1.28.53l2.56-2.559c.24-.24.566-.375.905-.375H12a1.75 1.75 0 0 0 1.75-1.75V4.75A1.75 1.75 0 0 0 12 3H4A1.75 1.75 0 0 0 2.25 4.75v2.12c-.76.18-1.25.873-1.25 1.87ZM4 4.5h8a.25.25 0 0 1 .25.25v3.75A.25.25 0 0 1 12 8.75H9.745a2.25 2.25 0 0 0-1.59.659L6.5 11.06V9.5a.75.75 0 0 0-.75-.75H4a.25.25 0 0 1-.25-.25V4.75A.25.25 0 0 1 4 4.5Z" clipRule="evenodd" />
+                            </svg>
+                            Chat
+                          </span>
+                          {/* Tooltip */}
+                          <div className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2.5 w-52 -translate-x-1/2 scale-95 rounded-2xl border border-violet-100 bg-white p-3.5 opacity-0 shadow-xl shadow-violet-100/50 transition-all duration-200 group-hover/chat:scale-100 group-hover/chat:opacity-100">
+                            <div className="flex flex-col items-center gap-2 text-center">
+                              <span className="text-xl">🔒</span>
+                              <p className="text-xs font-semibold text-gray-800">Reserve a spot to chat</p>
+                              <p className="text-xs leading-relaxed text-gray-500">
+                                Only attendees can join the conversation for this event.
+                              </p>
+                            </div>
+                            {/* Caret */}
+                            <div className="absolute -bottom-1.5 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 rounded-sm border-b border-r border-violet-100 bg-white" />
+                          </div>
+                        </div>
+                      )
                     )}
                   </div>
                 </div>

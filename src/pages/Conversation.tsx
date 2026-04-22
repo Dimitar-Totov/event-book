@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import { categories } from '../services/categories';
-import { type EventItem, fetchEventById } from '../services/events';
+import { type EventItem, fetchEventById, fetchJoinedEventIds, joinEvent } from '../services/events';
 
 // ─── Seed messages (keyed by event name) ─────────────────────────────────────
 
@@ -183,26 +184,122 @@ function MessageBubble({ msg, isOwn }: { msg: Message; isOwn: boolean }) {
   );
 }
 
+// ─── Reserve gate ─────────────────────────────────────────────────────────────
+
+function ReserveGate({ event, cat, category, onJoined }: {
+  event: EventItem;
+  cat: NonNullable<ReturnType<typeof categories.find>>;
+  category: string;
+  onJoined: () => void;
+}) {
+  const [joining, setJoining] = useState(false);
+
+  async function handleJoin() {
+    setJoining(true);
+    try {
+      await joinEvent(event.id);
+      onJoined();
+    } finally {
+      setJoining(false);
+    }
+  }
+
+  return (
+    <div className="mx-auto flex max-w-lg flex-col items-center gap-6 px-6 py-20 text-center sm:px-8">
+      {/* Icon */}
+      <div className={[
+        'flex h-24 w-24 items-center justify-center rounded-3xl text-5xl',
+        'bg-gradient-to-br shadow-lg ring-1',
+        cat.gradientCard,
+        cat.iconRing,
+      ].join(' ')}>
+        {cat.emoji}
+      </div>
+
+      {/* Heading */}
+      <div className="space-y-2">
+        <h2 className="text-2xl font-bold text-gray-900">Reserve your spot first</h2>
+        <p className="text-base leading-relaxed text-gray-500">
+          The conversation for{' '}
+          <span className="font-semibold text-gray-700">{event.name}</span>{' '}
+          is only open to attendees. Reserve your spot to unlock the chat and connect with others going.
+        </p>
+      </div>
+
+      {/* Info strip */}
+      <div className={[
+        'flex w-full items-center gap-4 rounded-2xl bg-gradient-to-br p-5',
+        cat.gradientCard,
+        'border border-white/60 shadow-sm',
+      ].join(' ')}>
+        <span className={['flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xl ring-1', cat.iconRing].join(' ')}>
+          💬
+        </span>
+        <div className="min-w-0 text-left">
+          <p className="text-sm font-semibold text-gray-800">Join the conversation</p>
+          <p className="text-xs leading-relaxed text-gray-500">
+            {event.date}{event.location ? ` · ${event.location}` : ''}
+          </p>
+        </div>
+      </div>
+
+      {/* CTAs */}
+      <div className="flex w-full flex-col gap-3">
+        <button
+          onClick={handleJoin}
+          disabled={joining}
+          className="gradient-iris flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-violet-200 transition hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {joining ? (
+            <>
+              <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+              Reserving…
+            </>
+          ) : (
+            <>Reserve a spot &amp; enter chat</>
+          )}
+        </button>
+        <Link
+          to={`/events/${category}`}
+          className="rounded-2xl border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-gray-500 shadow-sm transition hover:border-violet-300 hover:text-violet-600"
+        >
+          Back to {cat.label}
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function Conversation() {
   const { category = '', eventId = '' } = useParams<{ category: string; eventId: string }>();
+  useAuth(); // ensures we're inside AuthProvider
 
   const [event, setEvent] = useState<EventItem | null>(null);
   const [loadingEvent, setLoadingEvent] = useState(true);
+  const [hasReserved, setHasReserved] = useState<boolean | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Load event from Supabase by UUID, then seed messages by event name
+  // Load event + check reservation in parallel
   useEffect(() => {
     let cancelled = false;
     setLoadingEvent(true);
+    setHasReserved(null);
 
-    fetchEventById(eventId).then((data) => {
+    Promise.all([
+      fetchEventById(eventId),
+      fetchJoinedEventIds(),
+    ]).then(([data, joinedIds]) => {
       if (cancelled) return;
       setEvent(data);
       setMessages(data ? (seedMessages[data.name] ?? []) : []);
+      setHasReserved(joinedIds.has(eventId));
       setLoadingEvent(false);
     });
 
@@ -254,6 +351,19 @@ export default function Conversation() {
           Back to all categories
         </Link>
       </div>
+    );
+  }
+
+  // ── Not reserved → gate screen ────────────────────────────────────────────
+
+  if (hasReserved === false) {
+    return (
+      <ReserveGate
+        event={event}
+        cat={cat}
+        category={category}
+        onJoined={() => setHasReserved(true)}
+      />
     );
   }
 
