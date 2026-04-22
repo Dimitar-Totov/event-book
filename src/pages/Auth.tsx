@@ -118,19 +118,20 @@ interface SignUpFormProps {
   visible: boolean;
   isLoading: boolean;
   error: string | null;
-  onSubmit: (email: string, password: string, confirmPassword: string) => void;
+  onSubmit: (email: string, password: string, confirmPassword: string, username: string) => void;
   success: boolean;
   successEmail: string;
 }
 
 const SignUpForm = ({ visible, isLoading, error, onSubmit, success, successEmail }: SignUpFormProps) => {
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    onSubmit(email, password, confirmPassword);
+    onSubmit(email, password, confirmPassword, username);
   }
 
   const formClass = `flex w-1/2 flex-col items-center justify-center gap-5 px-10 py-12 transition-all duration-700
@@ -180,6 +181,16 @@ const SignUpForm = ({ visible, isLoading, error, onSubmit, success, successEmail
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <Input
+          label="Username"
+          id="signup-username"
+          type="text"
+          placeholder="e.g. johndoe"
+          autoComplete="username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
           required
         />
         <Input
@@ -347,7 +358,7 @@ const Auth = () => {
     if (success) navigate('/events');
   }
 
-  async function handleSignUp(email: string, password: string, confirmPassword: string) {
+  async function handleSignUp(email: string, password: string, confirmPassword: string, username: string) {
     setLocalError(null);
     clearError();
 
@@ -357,7 +368,7 @@ const Auth = () => {
     }
 
     setSignUpEmail(email.trim());
-    const result = await register(email, password);
+    const result = await register(email, password, username);
 
     if (result) {
       if (result.requiresConfirmation) {

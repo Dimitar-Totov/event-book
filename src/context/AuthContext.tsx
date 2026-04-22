@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../services/supabase';
+import { saveUsername } from '../services/profile';
 
 // ─── Public context shape ─────────────────────────────────────────────────────
 
@@ -22,7 +23,7 @@ export interface AuthContextType {
    * email, { requiresConfirmation: false } when the user is logged in immediately,
    * or null on failure (error is set in state).
    */
-  register(email: string, password: string): Promise<{ requiresConfirmation: boolean } | null>;
+  register(email: string, password: string, username: string): Promise<{ requiresConfirmation: boolean } | null>;
   /**
    * Log in with email + password.
    * Returns true on success, false on failure (error is set in state).
@@ -111,12 +112,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function register(
     email: string,
     password: string,
+    username: string,
   ): Promise<{ requiresConfirmation: boolean } | null> {
     const emailErr = validateEmail(email);
     if (emailErr) { setError(emailErr); return null; }
 
     const passwordErr = validatePassword(password);
     if (passwordErr) { setError(passwordErr); return null; }
+
+    if (!username.trim()) { setError('Username is required.'); return null; }
+    if (username.trim().length < 3) { setError('Username must be at least 3 characters.'); return null; }
 
     setIsLoading(true);
     setError(null);
@@ -131,6 +136,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (authError) {
       setError(mapAuthError(authError.message));
       return null;
+    }
+
+    // Save username to profiles table — best-effort, don't block registration
+    if (data.user) {
+      saveUsername(data.user.id, username.trim()).catch(() => {});
     }
 
     // session === null → Supabase sent a confirmation email

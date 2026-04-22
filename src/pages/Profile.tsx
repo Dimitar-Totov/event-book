@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { categories } from '../services/categories';
 import { type EventItem, fetchJoinedEvents, leaveEvent } from '../services/events';
 import { fetchAvatarUrl, uploadAvatar } from '../services/avatar';
+import { fetchUsername } from '../services/profile';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -160,6 +161,8 @@ export default function Profile() {
   const [avatarUploading, setAvatarUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [username, setUsername] = useState<string | null>(null);
+
   // Redirect guests
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -182,6 +185,12 @@ export default function Profile() {
   useEffect(() => {
     if (!user) return;
     fetchAvatarUrl(user.id).then(setAvatarUrl).catch(() => {});
+  }, [user]);
+
+  // Load username
+  useEffect(() => {
+    if (!user) return;
+    fetchUsername(user.id).then(setUsername).catch(() => {});
   }, [user]);
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -295,7 +304,9 @@ export default function Profile() {
 
               {/* Name / email */}
               <div className="mb-1 min-w-0">
-                <h1 className="truncate text-xl font-bold text-white sm:text-2xl">{displayName}</h1>
+                <h1 className="truncate text-xl font-bold text-white sm:text-2xl">
+                  {username ?? displayName}
+                </h1>
                 <p className="truncate text-sm text-white/80">{email}</p>
               </div>
             </div>
