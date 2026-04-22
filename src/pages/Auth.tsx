@@ -9,14 +9,14 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 const Input = ({ label, id, ...props }: InputProps) => (
-  <div className="flex flex-col gap-1.5">
+  <div className="flex flex-col gap-2">
     <label htmlFor={id} className="text-xs font-semibold uppercase tracking-widest text-gray-400">
       {label}
     </label>
     <input
       id={id}
       {...props}
-      className="rounded-xl border border-gray-200 bg-white/80 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none ring-violet-400 transition focus:border-violet-400 focus:ring-2"
+      className="rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-base text-gray-900 placeholder-gray-400 outline-none ring-violet-400 transition focus:border-violet-400 focus:ring-2"
     />
   </div>
 );
@@ -62,16 +62,16 @@ const SignInForm = ({ visible, isLoading, error, onSubmit }: SignInFormProps) =>
   return (
     <form
       onSubmit={handleSubmit}
-      className={`flex w-1/2 flex-col items-center justify-center gap-5 px-10 py-12 transition-all duration-700
+      className={`flex w-1/2 flex-col items-center justify-center gap-6 px-14 py-14 transition-all duration-700
         max-lg:w-full max-lg:px-6 max-lg:py-8
         ${visible ? 'opacity-100 delay-300' : 'pointer-events-none opacity-0'}`}
     >
-      <div className="mb-1 text-center">
-        <h2 className="text-2xl font-semibold text-gray-900">Welcome back</h2>
-        <p className="mt-1 text-sm text-gray-500">Sign in to your account</p>
+      <div className="mb-2 text-center">
+        <h2 className="text-3xl font-semibold text-gray-900">Welcome back</h2>
+        <p className="mt-1.5 text-base text-gray-500">Sign in to your account</p>
       </div>
 
-      <div className="flex w-full max-w-sm flex-col gap-4">
+      <div className="flex w-full max-w-sm flex-col gap-5">
         <Input
           label="Email"
           id="signin-email"
@@ -100,7 +100,7 @@ const SignInForm = ({ visible, isLoading, error, onSubmit }: SignInFormProps) =>
         <button
           type="submit"
           disabled={isLoading}
-          className="gradient-iris flex items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-200 transition hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+          className="gradient-iris flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-violet-200 transition hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isLoading ? <><Spinner /> Signing in…</> : 'Sign In'}
         </button>
@@ -134,7 +134,7 @@ const SignUpForm = ({ visible, isLoading, error, onSubmit, success, successEmail
     onSubmit(email, password, confirmPassword, username);
   }
 
-  const formClass = `flex w-1/2 flex-col items-center justify-center gap-5 px-10 py-12 transition-all duration-700
+  const formClass = `flex w-1/2 flex-col items-center justify-center gap-6 px-14 py-14 transition-all duration-700
     max-lg:w-full max-lg:px-6 max-lg:py-8
     ${visible ? 'opacity-100 delay-300' : 'pointer-events-none opacity-0'}`;
 
@@ -167,9 +167,9 @@ const SignUpForm = ({ visible, isLoading, error, onSubmit, success, successEmail
   // ── Registration form ─────────────────────────────────────────────────────
   return (
     <form onSubmit={handleSubmit} className={formClass}>
-      <div className="mb-1 text-center">
-        <h2 className="text-2xl font-semibold text-gray-900">Create account</h2>
-        <p className="mt-1 text-sm text-gray-500">Join Event Book for free</p>
+      <div className="mb-2 text-center">
+        <h2 className="text-3xl font-semibold text-gray-900">Create account</h2>
+        <p className="mt-1.5 text-base text-gray-500">Join Event Book for free</p>
       </div>
 
       <div className="flex w-full max-w-sm flex-col gap-4">
@@ -397,10 +397,10 @@ const Auth = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-16">
-      <div className="glass relative w-full max-w-4xl overflow-hidden rounded-2xl shadow-2xl shadow-violet-200/60">
+      <div className="glass relative w-full max-w-6xl overflow-hidden rounded-3xl shadow-2xl shadow-violet-200/60">
 
         {/* Desktop: side-by-side forms */}
-        <div className="hidden lg:flex lg:h-[620px]">
+        <div className="hidden lg:flex lg:h-[740px]">
           <SignInForm
             visible={!isSignUp}
             isLoading={isLoading}
