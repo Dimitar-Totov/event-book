@@ -148,7 +148,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-gray-900">
+    <div className="flex min-h-screen flex-col bg-slate-50 text-gray-900">
 
       {/* Ambient background blobs */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
@@ -246,7 +246,7 @@ function App() {
         )}
       </header>
 
-      <main>
+      <main className="flex-1">
         <Outlet />
       </main>
 
