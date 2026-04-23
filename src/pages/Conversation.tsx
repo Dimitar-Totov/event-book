@@ -3,94 +3,14 @@ import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { categories } from '../services/categories';
 import { type EventItem, fetchEventById, fetchJoinedEventIds, joinEvent } from '../services/events';
-
-// ─── Seed messages (keyed by event name) ─────────────────────────────────────
-
-type Message = {
-  id: string;
-  author: string;
-  avatar: string;
-  text: string;
-  timestamp: string;
-  isOwn?: boolean;
-};
-
-const seedMessages: Record<string, Message[]> = {
-  'Jazz Night': [
-    { id: 'm1', author: 'Lena Fischer',  avatar: 'LF', text: "Can't wait for Jazz Night! Anyone else planning to arrive early?", timestamp: '2:14 PM' },
-    { id: 'm2', author: 'Marco Bianchi', avatar: 'MB', text: "Yes! Doors open at 7 so I'll be there around 6:45 to grab a good seat.", timestamp: '2:17 PM' },
-    { id: 'm3', author: 'Sofia Herrera', avatar: 'SH', text: 'Is parking easy near the venue?', timestamp: '2:21 PM' },
-    { id: 'm4', author: 'Marco Bianchi', avatar: 'MB', text: "There's a public lot two blocks east — about $8 for the evening.", timestamp: '2:23 PM' },
-  ],
-  'Rock Festival': [
-    { id: 'm1', author: 'Jordan Lee', avatar: 'JL', text: 'Rock Festival day one lineup just dropped. Main stage kicks off at 4 PM!', timestamp: '11:05 AM' },
-    { id: 'm2', author: 'Priya Nair',  avatar: 'PN', text: 'Which bands are you most excited about?', timestamp: '11:09 AM' },
-    { id: 'm3', author: 'Jordan Lee', avatar: 'JL', text: 'Definitely the headliner on Saturday night. The pyrotechnics alone are worth it.', timestamp: '11:12 AM' },
-  ],
-  'Classical Orchestra': [
-    { id: 'm1', author: 'Elena Vasquez', avatar: 'EV', text: "The Classical Orchestra performance is tomorrow — has anyone listened to the programme?", timestamp: '4:30 PM' },
-    { id: 'm2', author: 'Theo Müller',   avatar: 'TM', text: "Beethoven's 9th is on the setlist. That finale is going to be incredible.", timestamp: '4:35 PM' },
-  ],
-  'Rila Mountain': [
-    { id: 'm1', author: 'Ivan Petrov', avatar: 'IP', text: "Rila hike crew, who's bringing trekking poles? Trail to the lakes can be slippery in April.", timestamp: '9:00 AM' },
-    { id: 'm2', author: 'Ana Costa',   avatar: 'AC', text: 'I have a spare pair if anyone needs to borrow!', timestamp: '9:04 AM' },
-    { id: 'm3', author: 'Yuki Tanaka', avatar: 'YT', text: 'What about weather? Forecast looks a bit cloudy for day two.', timestamp: '9:08 AM' },
-    { id: 'm4', author: 'Ivan Petrov', avatar: 'IP', text: 'Pack a light rain jacket just in case. The mountain weather changes fast.', timestamp: '9:11 AM' },
-  ],
-  'Pirin Mountain': [
-    { id: 'm1', author: 'Bogdan Iliescu', avatar: 'BI', text: "Pirin trek starts at Predela pass, right? Anyone driving from Sofia and has a free seat?", timestamp: '3:00 PM' },
-    { id: 'm2', author: 'Marta Kowalski', avatar: 'MK', text: 'I have one seat free — leaving Saturday at 6 AM from NDK.', timestamp: '3:05 PM' },
-  ],
-  'Vitosha Mountain': [
-    { id: 'm1', author: 'Alex Dimitrov', avatar: 'AD', text: "Vitosha day hike — are we taking the Aleko route or going through Zlatni Mostove?", timestamp: '10:00 AM' },
-    { id: 'm2', author: 'Sara Patel',    avatar: 'SP', text: 'Zlatni Mostove has the river rocks which are super scenic this time of year!', timestamp: '10:03 AM' },
-    { id: 'm3', author: 'Alex Dimitrov', avatar: 'AD', text: "Great call, let's do that route then.", timestamp: '10:06 AM' },
-  ],
-  'Sunny Beach Weekend': [
-    { id: 'm1', author: 'Nadia Rousseau', avatar: 'NR', text: "Sunny Beach crew — anyone know if paddleboards are included or extra cost?", timestamp: '1:00 PM' },
-    { id: 'm2', author: 'Carlos Ortiz',   avatar: 'CO', text: 'I checked — paddleboards are included with the registration!', timestamp: '1:04 PM' },
-    { id: 'm3', author: 'Nadia Rousseau', avatar: 'NR', text: "Amazing, that's such a great deal. See you all there!", timestamp: '1:06 PM' },
-  ],
-  'Sunset Sailing': [
-    { id: 'm1', author: 'Thomas Eriksson', avatar: 'TE', text: 'Sunset Sailing — dress code? Is smart casual appropriate?', timestamp: '5:00 PM' },
-    { id: 'm2', author: 'Lila Moreau',     avatar: 'LM', text: 'The invite said "resort elegant" — so think flowy dresses and linen shirts.', timestamp: '5:05 PM' },
-    { id: 'm3', author: 'Thomas Eriksson', avatar: 'TE', text: 'Perfect, thanks! The gourmet dinner menu looks incredible too.', timestamp: '5:07 PM' },
-  ],
-  'Surf & Yoga Retreat': [
-    { id: 'm1', author: 'Kai Nakamura', avatar: 'KN', text: "Surf & Yoga Retreat — what skill level is the surfing part? Total beginner here!", timestamp: '8:00 AM' },
-    { id: 'm2', author: 'Maya Santos',  avatar: 'MS', text: 'Instructors cover all levels. I was a complete novice last year and it was amazing.', timestamp: '8:05 AM' },
-  ],
-  'Street Food Carnival': [
-    { id: 'm1', author: 'Amara Diallo',  avatar: 'AD', text: "Street Food Carnival — which country's cuisine are you most excited to try?", timestamp: '12:00 PM' },
-    { id: 'm2', author: 'Ren Chen',      avatar: 'RC', text: "Hoping for a great Thai stall. Last year's pad thai was unforgettable.", timestamp: '12:03 PM' },
-    { id: 'm3', author: 'Amara Diallo',  avatar: 'AD', text: 'Ethiopian injera for me! Fingers crossed it\'s there again.', timestamp: '12:05 PM' },
-    { id: 'm4', author: 'Lucas Ferreira',avatar: 'LF', text: 'They also confirmed a Brazilian churrasco grill this year!', timestamp: '12:08 PM' },
-  ],
-  'Farm-to-Table Dinner': [
-    { id: 'm1', author: 'Charlotte Dubois', avatar: 'CD', text: "Farm-to-Table Dinner — does anyone know if vegetarian options are available for all 5 courses?", timestamp: '6:00 PM' },
-    { id: 'm2', author: 'Ethan Brooks',     avatar: 'EB', text: 'Yes! I emailed the organiser and they confirmed a full vegetarian tasting menu.', timestamp: '6:04 PM' },
-    { id: 'm3', author: 'Charlotte Dubois', avatar: 'CD', text: "That's wonderful, thank you!", timestamp: '6:06 PM' },
-  ],
-  'Wine & Cheese Festival': [
-    { id: 'm1', author: 'Valentina Greco', avatar: 'VG', text: 'Wine & Cheese Festival — do tickets include unlimited tastings or is it per pour?', timestamp: '3:30 PM' },
-    { id: 'm2', author: 'Oliver Schmitt',  avatar: 'OS', text: 'Tickets include 6 wine pours and 4 cheese selections. Extra tokens are $5 each.', timestamp: '3:34 PM' },
-  ],
-  'Modern Art Showcase': [
-    { id: 'm1', author: 'Isabelle Laurent', avatar: 'IL', text: 'Modern Art Showcase — the preview images look stunning. Any favourites already?', timestamp: '11:00 AM' },
-    { id: 'm2', author: 'Hana Yoshida',     avatar: 'HY', text: "Room 3 — the large-scale canvas work. Photos don't do it justice apparently.", timestamp: '11:04 AM' },
-    { id: 'm3', author: 'Isabelle Laurent', avatar: 'IL', text: 'Definitely putting that first on my list. Guided tour or self-explore?', timestamp: '11:07 AM' },
-    { id: 'm4', author: 'Hana Yoshida',     avatar: 'HY', text: "There's a guided tour at 2 PM and 5 PM, or you can go at your own pace.", timestamp: '11:09 AM' },
-  ],
-  'Live Mural Painting': [
-    { id: 'm1', author: 'Damien Rousseau', avatar: 'DR', text: 'Live Mural Painting — will there be a chance to meet the artists afterwards?', timestamp: '2:00 PM' },
-    { id: 'm2', author: 'Zoe Andersen',    avatar: 'ZA', text: "Yes! There's a meet & greet with light refreshments at 6 PM once the mural wraps.", timestamp: '2:04 PM' },
-  ],
-  'Sculpture Garden Walk': [
-    { id: 'm1', author: 'Finn Larsson', avatar: 'FL', text: 'Sculpture Garden Walk — is the path accessible for wheelchairs and pushchairs?', timestamp: '9:30 AM' },
-    { id: 'm2', author: 'Cleo Baptiste', avatar: 'CB', text: 'The main paths are paved and fully accessible. Some of the side trails are gravel though.', timestamp: '9:35 AM' },
-    { id: 'm3', author: 'Finn Larsson', avatar: 'FL', text: 'Good to know, thanks! The main path will be perfect.', timestamp: '9:37 AM' },
-  ],
-};
+import {
+  type ChatMessage,
+  fetchMessages,
+  postMessage,
+  deleteMessage,
+  toggleReaction,
+  subscribeToMessages,
+} from '../services/messages';
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -126,6 +46,14 @@ function UsersIcon({ className = '' }: { className?: string }) {
   );
 }
 
+function TrashIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5">
+      <path fillRule="evenodd" d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.3l.815 8.15A1.5 1.5 0 0 0 5.357 15h5.285a1.5 1.5 0 0 0 1.493-1.35l.815-8.15h.3a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25Zm2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75h-1.5ZM6.05 6a.75.75 0 0 1 .787.713l.275 5.5a.75.75 0 0 1-1.498.075l-.275-5.5A.75.75 0 0 1 6.05 6Zm3.9 0a.75.75 0 0 1 .712.787l-.275 5.5a.75.75 0 0 1-1.498-.075l.275-5.5a.75.75 0 0 1 .786-.712Z" clipRule="evenodd" />
+    </svg>
+  );
+}
+
 // ─── Avatar ───────────────────────────────────────────────────────────────────
 
 const avatarPalette = [
@@ -144,8 +72,27 @@ function avatarColor(initials: string) {
   return avatarPalette[code % avatarPalette.length];
 }
 
-function Avatar({ initials, size = 'md' }: { initials: string; size?: 'sm' | 'md' }) {
+function Avatar({
+  initials,
+  avatarUrl,
+  size = 'md',
+}: {
+  initials: string;
+  avatarUrl?: string | null;
+  size?: 'sm' | 'md';
+}) {
   const dim = size === 'sm' ? 'h-7 w-7 text-xs' : 'h-9 w-9 text-sm';
+
+  if (avatarUrl) {
+    return (
+      <img
+        src={avatarUrl}
+        alt={initials}
+        className={`inline-flex shrink-0 rounded-full object-cover ${dim}`}
+      />
+    );
+  }
+
   return (
     <span className={`inline-flex shrink-0 items-center justify-center rounded-full font-semibold ${dim} ${avatarColor(initials)}`}>
       {initials}
@@ -153,32 +100,163 @@ function Avatar({ initials, size = 'md' }: { initials: string; size?: 'sm' | 'md
   );
 }
 
+// ─── Reaction bar ─────────────────────────────────────────────────────────────
+
+const FIXED_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '😡'];
+
 // ─── Message bubble ───────────────────────────────────────────────────────────
 
-function MessageBubble({ msg, isOwn }: { msg: Message; isOwn: boolean }) {
-  if (isOwn) {
+function formatTime(iso: string): string {
+  const date = new Date(iso);
+  const now = new Date();
+
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const msgStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.round((todayStart.getTime() - msgStart.getTime()) / 86_400_000);
+
+  const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  if (diffDays === 0) return time;
+  if (diffDays === 1) return `Yesterday ${time}`;
+  if (diffDays < 7) return `${diffDays} days ago ${time}`;
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + time;
+}
+
+function MessageBubble({
+  msg,
+  onDelete,
+  onToggleReaction,
+  onError,
+}: {
+  msg: ChatMessage;
+  onDelete: (id: string) => void;
+  onToggleReaction: (messageId: string, emoji: string) => void;
+  onError: (err: string) => void;
+}) {
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDelete() {
+    setDeleting(true);
+    try {
+      await deleteMessage(msg.id);
+      onDelete(msg.id);
+    } catch (err) {
+      onError(err instanceof Error ? err.message : 'Failed to delete message.');
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  async function handleToggleReaction(emoji: string) {
+    await toggleReaction(msg.id, emoji);
+    onToggleReaction(msg.id, emoji);
+  }
+
+  const myReaction = msg.reactions.find((r) => r.reactedByMe)?.emoji ?? null;
+
+  // ── Deleted placeholder ─────────────────────────────────────────────────
+
+  if (msg.deleted) {
     return (
-      <div className="flex items-end justify-end gap-2">
-        <div className="flex max-w-[75%] flex-col items-end gap-1">
-          <span className="gradient-iris rounded-2xl rounded-br-sm px-4 py-2.5 text-sm leading-relaxed text-white shadow-sm">
-            {msg.text}
-          </span>
-          <span className="text-xs text-gray-400">{msg.timestamp}</span>
-        </div>
-        <Avatar initials="You" size="sm" />
+      <div className={`flex items-end gap-2 ${msg.isOwn ? 'justify-end' : ''}`}>
+        {!msg.isOwn && <Avatar initials={msg.initials} avatarUrl={msg.avatarUrl} size="sm" />}
+        <span className="rounded-2xl border border-dashed border-gray-200 px-4 py-2 text-xs italic text-gray-400">
+          Message deleted
+        </span>
+        {msg.isOwn && <Avatar initials={msg.initials} avatarUrl={msg.avatarUrl} size="sm" />}
       </div>
     );
   }
 
+  // ── Own message ─────────────────────────────────────────────────────────
+
+  if (msg.isOwn) {
+    return (
+      <div className="flex items-start justify-end gap-2">
+        <div className="flex max-w-[75%] flex-col items-end gap-1">
+          <div className="group/msg relative flex flex-col items-end gap-1">
+            <span className="gradient-iris rounded-2xl rounded-br-sm px-4 py-2.5 text-sm leading-relaxed text-white shadow-sm">
+              {msg.text}
+            </span>
+            {/* Delete button — appears on hover */}
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              title="Delete message"
+              className="absolute -left-8 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/msg:opacity-100 flex h-6 w-6 items-center justify-center rounded-full bg-white text-gray-400 shadow hover:bg-red-50 hover:text-red-500 disabled:opacity-40"
+            >
+              {deleting ? (
+                <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+              ) : <TrashIcon />}
+            </button>
+          </div>
+          <span className="text-xs text-gray-400">{formatTime(msg.createdAt)}</span>
+        </div>
+        <Avatar initials={msg.initials} avatarUrl={msg.avatarUrl} size="sm" />
+      </div>
+    );
+  }
+
+  // ── Others' message ─────────────────────────────────────────────────────
+
   return (
-    <div className="flex items-end gap-2">
-      <Avatar initials={msg.avatar} size="sm" />
+    <div className="group/bubble flex items-start gap-2">
+      <Avatar initials={msg.initials} avatarUrl={msg.avatarUrl} size="sm" />
       <div className="flex max-w-[75%] flex-col gap-1">
-        <span className="ml-1 text-xs font-medium text-gray-500">{msg.author}</span>
-        <span className="rounded-2xl rounded-bl-sm bg-white/80 px-4 py-2.5 text-sm leading-relaxed text-gray-800 shadow-sm ring-1 ring-gray-100 backdrop-blur-sm">
-          {msg.text}
-        </span>
-        <span className="ml-1 text-xs text-gray-400">{msg.timestamp}</span>
+        <span className="ml-1 text-xs font-medium text-gray-500">{msg.username}</span>
+
+        {/* Bubble + hover reaction strip */}
+        <div className="relative">
+          <span className="block rounded-2xl rounded-bl-sm bg-white/80 px-4 py-2.5 text-sm leading-relaxed text-gray-800 shadow-sm ring-1 ring-gray-100 backdrop-blur-sm">
+            {msg.text}
+          </span>
+
+          {/* Floating emoji strip — appears above bubble on hover */}
+          <div className="absolute -top-11 left-0 z-10 flex items-center gap-0.5 rounded-2xl border border-gray-100 bg-white px-2 py-1.5 shadow-lg opacity-0 transition-all duration-150 group-hover/bubble:opacity-100 pointer-events-none group-hover/bubble:pointer-events-auto">
+            {FIXED_REACTIONS.map((emoji) => (
+              <button
+                key={emoji}
+                onClick={() => handleToggleReaction(emoji)}
+                title={emoji}
+                className={[
+                  'flex h-8 w-8 items-center justify-center rounded-full text-lg transition-all duration-100 hover:scale-125',
+                  myReaction === emoji ? 'bg-violet-100 scale-110' : 'hover:bg-gray-100',
+                ].join(' ')}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+
+          {/* Reaction counts — overlapping the bottom edge of the bubble */}
+          {msg.reactions.length > 0 && (
+            <div className="absolute -bottom-3.5 left-2 flex flex-wrap gap-1">
+              {msg.reactions.map((r) => (
+                <button
+                  key={r.emoji}
+                  onClick={() => handleToggleReaction(r.emoji)}
+                  className={[
+                    'inline-flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-xs font-medium shadow-sm transition-all duration-150',
+                    r.reactedByMe
+                      ? 'border-violet-300 bg-violet-50 text-violet-700'
+                      : 'border-gray-200 bg-white text-gray-600 hover:border-violet-200 hover:bg-violet-50',
+                  ].join(' ')}
+                >
+                  <span>{r.emoji}</span>
+                  <span>{r.count}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Spacer so reaction badges don't overlap the timestamp */}
+        {msg.reactions.length > 0 && <div className="h-3" />}
+
+        <span className="ml-1 text-xs text-gray-400">{formatTime(msg.createdAt)}</span>
       </div>
     </div>
   );
@@ -206,7 +284,6 @@ function ReserveGate({ event, cat, category, onJoined }: {
 
   return (
     <div className="mx-auto flex max-w-lg flex-col items-center gap-6 px-6 py-20 text-center sm:px-8">
-      {/* Icon */}
       <div className={[
         'flex h-24 w-24 items-center justify-center rounded-3xl text-5xl',
         'bg-gradient-to-br shadow-lg ring-1',
@@ -216,7 +293,6 @@ function ReserveGate({ event, cat, category, onJoined }: {
         {cat.emoji}
       </div>
 
-      {/* Heading */}
       <div className="space-y-2">
         <h2 className="text-2xl font-bold text-gray-900">Reserve your spot first</h2>
         <p className="text-base leading-relaxed text-gray-500">
@@ -226,7 +302,6 @@ function ReserveGate({ event, cat, category, onJoined }: {
         </p>
       </div>
 
-      {/* Info strip */}
       <div className={[
         'flex w-full items-center gap-4 rounded-2xl bg-gradient-to-br p-5',
         cat.gradientCard,
@@ -243,7 +318,6 @@ function ReserveGate({ event, cat, category, onJoined }: {
         </div>
       </div>
 
-      {/* CTAs */}
       <div className="flex w-full flex-col gap-3">
         <button
           onClick={handleJoin}
@@ -258,9 +332,7 @@ function ReserveGate({ event, cat, category, onJoined }: {
               </svg>
               Reserving…
             </>
-          ) : (
-            <>Reserve a spot &amp; enter chat</>
-          )}
+          ) : 'Reserve a spot & enter chat'}
         </button>
         <Link
           to={`/events/${category}`}
@@ -277,17 +349,25 @@ function ReserveGate({ event, cat, category, onJoined }: {
 
 export default function Conversation() {
   const { category = '', eventId = '' } = useParams<{ category: string; eventId: string }>();
-  useAuth(); // ensures we're inside AuthProvider
+  const { user } = useAuth();
 
   const [event, setEvent] = useState<EventItem | null>(null);
   const [loadingEvent, setLoadingEvent] = useState(true);
   const [hasReserved, setHasReserved] = useState<boolean | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [draft, setDraft] = useState('');
-  const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Load event + check reservation in parallel
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // ── Load event + reservation check ────────────────────────────────────────
+
   useEffect(() => {
+    if (!user) return;
     let cancelled = false;
     setLoadingEvent(true);
     setHasReserved(null);
@@ -298,30 +378,98 @@ export default function Conversation() {
     ]).then(([data, joinedIds]) => {
       if (cancelled) return;
       setEvent(data);
-      setMessages(data ? (seedMessages[data.name] ?? []) : []);
       setHasReserved(joinedIds.has(eventId));
       setLoadingEvent(false);
     });
 
     return () => { cancelled = true; };
-  }, [eventId]);
+  }, [eventId, user]);
 
-  // Scroll to bottom whenever messages change
+  // ── Load messages + subscribe to realtime ─────────────────────────────────
+
+  useEffect(() => {
+    if (!hasReserved || !user) return;
+    let cancelled = false;
+
+    setMessagesLoading(true);
+    fetchMessages(eventId).then((data) => {
+      if (cancelled) return;
+      setMessages(data);
+      setMessagesLoading(false);
+    });
+
+    const unsub = subscribeToMessages(
+      eventId,
+      user.id,
+      // onInsert
+      (msg) => {
+        if (cancelled) return;
+        setMessages((prev) => [...prev, msg]);
+      },
+      // onDelete
+      (messageId) => {
+        if (cancelled) return;
+        setMessages((prev) =>
+          prev.map((m) => (m.id === messageId ? { ...m, deleted: true } : m)),
+        );
+      },
+      // onReaction
+      (messageId, reactions) => {
+        if (cancelled) return;
+        setMessages((prev) =>
+          prev.map((m) => (m.id === messageId ? { ...m, reactions } : m)),
+        );
+      },
+    );
+
+    return () => {
+      cancelled = true;
+      unsub();
+    };
+  }, [eventId, hasReserved, user]);
+
+  // ── Auto-scroll to bottom ─────────────────────────────────────────────────
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const cat = event ? categories.find((c) => c.label === event.category) : null;
+  // ── Message action handlers ───────────────────────────────────────────────
 
-  function handleSend() {
+  function handleMessageDeleted(id: string) {
+    setMessages((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, deleted: true } : m)),
+    );
+  }
+
+  function handleReactionToggled(messageId: string, _emoji: string) {
+    // Reaction state is updated via realtime; nothing to do optimistically
+    // to avoid double-update. Realtime will fire and update.
+    void messageId;
+  }
+
+  // ── Send ──────────────────────────────────────────────────────────────────
+
+  async function handleSend() {
     const text = draft.trim();
-    if (!text) return;
-    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setMessages((prev) => [
-      ...prev,
-      { id: `u-${Date.now()}`, author: 'You', avatar: 'Yo', text, timestamp, isOwn: true },
-    ]);
+    if (!text || sending) return;
+
+    setSendError(null);
+    setSending(true);
     setDraft('');
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
+
+    try {
+      const msg = await postMessage(eventId, text);
+      setMessages((prev) => [...prev, msg]);
+    } catch {
+      setSendError('Failed to send. Please try again.');
+      setDraft(text);
+    } finally {
+      setSending(false);
+    }
   }
 
   function handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -331,9 +479,11 @@ export default function Conversation() {
     }
   }
 
-  // ── Loading state ─────────────────────────────────────────────────────────
+  const cat = event ? categories.find((c) => c.label === event.category) : null;
 
-  if (loadingEvent) {
+  // ── Loading ────────────────────────────────────────────────────────────────
+
+  if (loadingEvent || hasReserved === null) {
     return (
       <div className="mx-auto max-w-7xl px-6 py-28 text-center sm:px-8">
         <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-violet-100 border-t-violet-500" />
@@ -354,9 +504,9 @@ export default function Conversation() {
     );
   }
 
-  // ── Not reserved → gate screen ────────────────────────────────────────────
+  // ── Not reserved ──────────────────────────────────────────────────────────
 
-  if (hasReserved === false) {
+  if (!hasReserved) {
     return (
       <ReserveGate
         event={event}
@@ -367,12 +517,18 @@ export default function Conversation() {
     );
   }
 
-  // ── Layout ────────────────────────────────────────────────────────────────
+  // ── Current user's avatar for input area ──────────────────────────────────
+
+  const currentUserMsg = messages.find((m) => m.isOwn);
+  const inputAvatarUrl = currentUserMsg?.avatarUrl ?? null;
+  const inputInitials = currentUserMsg?.initials ?? (user?.email?.slice(0, 2).toUpperCase() ?? 'Me');
+
+  // ── Chat UI ───────────────────────────────────────────────────────────────
 
   return (
     <section className="mx-auto flex max-w-7xl flex-col px-6 pb-12 pt-14 sm:px-8">
 
-      {/* Breadcrumb nav */}
+      {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm">
         <Link
           to="/events"
@@ -400,20 +556,15 @@ export default function Conversation() {
       ].join(' ')}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
           <span
-            className={[
-              'inline-flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-3xl ring-1',
-              cat.iconRing,
-            ].join(' ')}
+            className={['inline-flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-3xl ring-1', cat.iconRing].join(' ')}
             aria-hidden="true"
           >
             {cat.emoji}
           </span>
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${cat.pill}`}>
-                {event.type}
-              </span>
-            </div>
+            <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${cat.pill}`}>
+              {event.type}
+            </span>
             <h1 className="mt-1.5 text-2xl font-semibold tracking-tight text-gray-900 sm:text-3xl">
               {event.name}
             </h1>
@@ -426,7 +577,7 @@ export default function Conversation() {
         </div>
       </div>
 
-      {/* Conversations panel */}
+      {/* Chat panel */}
       <div className="mt-6 flex flex-col overflow-hidden rounded-3xl border border-white/60 bg-white/70 shadow-lg backdrop-blur-sm">
 
         {/* Panel header */}
@@ -434,9 +585,11 @@ export default function Conversation() {
           <div className="flex items-center gap-2">
             <UsersIcon className={`h-5 w-5 ${cat.accent}`} />
             <span className="font-semibold text-gray-900">Event conversation</span>
-            <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs text-gray-500">
-              {messages.length} messages
-            </span>
+            {!messagesLoading && (
+              <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs text-gray-500">
+                {messages.length} {messages.length === 1 ? 'message' : 'messages'}
+              </span>
+            )}
           </div>
           <span className="flex items-center gap-1.5 text-xs text-gray-400">
             <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
@@ -444,9 +597,13 @@ export default function Conversation() {
           </span>
         </div>
 
-        {/* Messages list */}
+        {/* Messages */}
         <div className="flex min-h-[420px] flex-col gap-4 overflow-y-auto px-6 py-6 md:min-h-[520px]">
-          {messages.length === 0 ? (
+          {messagesLoading ? (
+            <div className="my-auto flex justify-center">
+              <div className="h-6 w-6 animate-spin rounded-full border-4 border-violet-100 border-t-violet-500" />
+            </div>
+          ) : messages.length === 0 ? (
             <div className="my-auto flex flex-col items-center justify-center gap-3 text-center">
               <span className={['inline-flex h-16 w-16 items-center justify-center rounded-2xl text-3xl ring-1', cat.iconRing].join(' ')}>
                 {cat.emoji}
@@ -459,28 +616,44 @@ export default function Conversation() {
             </div>
           ) : (
             messages.map((msg) => (
-              <MessageBubble key={msg.id} msg={msg} isOwn={!!msg.isOwn} />
+              <MessageBubble
+                key={msg.id}
+                msg={msg}
+                onDelete={handleMessageDeleted}
+                onToggleReaction={handleReactionToggled}
+                onError={setSendError}
+              />
             ))
           )}
           <div ref={bottomRef} />
         </div>
 
+        {/* Send error */}
+        {sendError && (
+          <div className="mx-4 mb-2 rounded-xl border border-red-100 bg-red-50 px-4 py-2 text-xs text-red-600">
+            {sendError}
+          </div>
+        )}
+
         {/* Input area */}
         <div className="border-t border-gray-100 px-4 py-4">
           <div className="flex items-end gap-3">
-            <Avatar initials="Yo" size="sm" />
+            <Avatar initials={inputInitials} avatarUrl={inputAvatarUrl} size="sm" />
             <div className="relative flex-1">
               <textarea
+                ref={textareaRef}
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={handleKey}
                 placeholder={`Message about ${event.name}…`}
                 rows={1}
+                disabled={sending}
                 className={[
                   'w-full resize-none rounded-2xl border border-gray-200 bg-white/80 px-4 py-3 pr-12',
                   'text-sm leading-relaxed text-gray-900 placeholder:text-gray-400',
                   'shadow-sm backdrop-blur-sm transition-all duration-200',
                   'focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-100',
+                  'disabled:opacity-60',
                 ].join(' ')}
                 style={{ maxHeight: '120px', overflowY: 'auto' }}
                 onInput={(e) => {
@@ -491,7 +664,7 @@ export default function Conversation() {
               />
               <button
                 onClick={handleSend}
-                disabled={!draft.trim()}
+                disabled={!draft.trim() || sending}
                 aria-label="Send message"
                 className={[
                   'absolute bottom-2.5 right-2.5 flex h-8 w-8 items-center justify-center rounded-xl',
@@ -500,7 +673,12 @@ export default function Conversation() {
                   'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100',
                 ].join(' ')}
               >
-                <SendIcon />
+                {sending ? (
+                  <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                ) : <SendIcon />}
               </button>
             </div>
           </div>
